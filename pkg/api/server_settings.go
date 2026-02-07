@@ -62,9 +62,8 @@ func (a *ServerSettingsApi) ServerSettingsJavascriptHandler(c *core.WebContext) 
 		}
 	}
 
-	if config.TransactionFromOCRImageRecognition {
-		a.appendBooleanSetting(builder, "llmo", config.TransactionFromOCRImageRecognition)
-	}
+	// Always output llmo (OCR bill recognition) so frontend can rely on the key; value 0 or 1
+	a.appendBooleanSetting(builder, "llmo", config.TransactionFromOCRImageRecognition)
 
 	if config.LoginPageTips.Enabled {
 		a.appendMultiLanguageTipSetting(builder, "lpt", config.LoginPageTips)

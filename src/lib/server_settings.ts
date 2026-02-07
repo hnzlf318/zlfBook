@@ -60,7 +60,8 @@ export function isTransactionFromAIImageRecognitionEnabled(): boolean {
 }
 
 export function isTransactionFromOCRImageRecognitionEnabled(): boolean {
-    return getServerSetting('llmo') === 1;
+    const v = getServerSetting('llmo');
+    return v === 1 || v === '1' || v === true;
 }
 
 export function getLoginPageTips(): Record<string, string>{
