@@ -479,6 +479,9 @@ func startWebServer(c *core.CliContext) error {
 					apiV1Route.POST("/llm/transactions/recognize_receipt_image.json", bindApi(api.LargeLanguageModels.RecognizeReceiptImageHandler))
 				}
 			}
+			if config.TransactionFromOCRImageRecognition {
+				apiV1Route.POST("/llm/transactions/recognize_receipt_image_ocr.json", bindApi(api.LargeLanguageModels.RecognizeReceiptImageByOCRHandler))
+			}
 
 			// Exchange Rates
 			apiV1Route.GET("/exchange_rates/latest.json", bindApi(api.ExchangeRates.LatestExchangeRateHandler))

@@ -98,6 +98,9 @@ export const SPECIFIED_API_NOT_FOUND_ERRORS: Record<string, SpecifiedApiError> =
     },
     '/api/v1/llm/transactions/recognize_receipt_image.json': {
         message: 'AI image recognition is disabled'
+    },
+    '/api/v1/llm/transactions/recognize_receipt_image_ocr.json': {
+        message: 'OCR bill recognition is disabled'
     }
 };
 

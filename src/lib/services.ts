@@ -185,7 +185,8 @@ import type {
     UserApplicationCloudSettingsUpdateRequest
 } from '@/models/user_app_cloud_setting.ts';
 import type {
-    RecognizedReceiptImageResponse
+    RecognizedReceiptImageResponse,
+    RecognizedReceiptImageListResponse
 } from '@/models/large_language_model.ts';
 
 import {
@@ -860,6 +861,13 @@ export default {
         }, {
             timeout: DEFAULT_LLM_API_TIMEOUT,
             cancelableUuid: cancelableUuid
+        } as ApiRequestConfig);
+    },
+    recognizeReceiptImageByOCR: (imageFile: File): ApiResponsePromise<RecognizedReceiptImageListResponse> => {
+        return axios.postForm<ApiResponse<RecognizedReceiptImageListResponse>>('v1/llm/transactions/recognize_receipt_image_ocr.json', {
+            image: imageFile
+        }, {
+            timeout: 60000
         } as ApiRequestConfig);
     },
     getLatestExchangeRates: (param: { ignoreError?: boolean }): ApiResponsePromise<LatestExchangeRateResponse> => {

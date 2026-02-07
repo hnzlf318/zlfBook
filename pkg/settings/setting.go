@@ -337,6 +337,7 @@ type Config struct {
 
 	// Large Language Model
 	TransactionFromAIImageRecognition bool
+	TransactionFromOCRImageRecognition bool
 	MaxAIRecognitionPictureFileSize   uint32
 
 	// Large Language Model for Receipt Image Recognition
@@ -860,6 +861,7 @@ func loadStorageConfiguration(config *Config, configFile *ini.File, sectionName 
 
 func loadLLMGlobalConfiguration(config *Config, configFile *ini.File, sectionName string) error {
 	config.TransactionFromAIImageRecognition = getConfigItemBoolValue(configFile, sectionName, "transaction_from_ai_image_recognition", false)
+	config.TransactionFromOCRImageRecognition = getConfigItemBoolValue(configFile, sectionName, "transaction_from_ocr_image_recognition", false)
 	config.MaxAIRecognitionPictureFileSize = getConfigItemUint32Value(configFile, sectionName, "max_ai_recognition_picture_size", defaultAIRecognitionPictureMaxSize)
 
 	return nil

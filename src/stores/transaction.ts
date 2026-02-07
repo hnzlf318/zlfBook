@@ -1260,6 +1260,31 @@ export const useTransactionsStore = defineStore('transactions', () => {
         });
     }
 
+    function recognizeReceiptImageByOCR(imageFile: File): Promise<RecognizedReceiptImageResponse[]> {
+        return new Promise((resolve, reject) => {
+            services.recognizeReceiptImageByOCR(imageFile).then(response => {
+                const data = response.data;
+
+                if (!data || !data.success || !data.result || !data.result.transactions || data.result.transactions.length < 1) {
+                    reject({ message: 'No transaction information detected' });
+                    return;
+                }
+
+                resolve(data.result.transactions);
+            }).catch(error => {
+                logger.error('failed to recognize image by OCR', error);
+
+                if (error.response && error.response.data && error.response.data.errorMessage) {
+                    reject({ error: error.response.data });
+                } else if (!error.processed) {
+                    reject({ message: 'Unable to recognize image by OCR' });
+                } else {
+                    reject(error);
+                }
+            });
+        });
+    }
+
     function cancelRecognizeReceiptImage(cancelableUuid: string): void {
         services.cancelRequest(cancelableUuid);
     }
@@ -1479,6 +1504,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
         moveAllTransactionsBetweenAccounts,
         deleteTransaction,
         recognizeReceiptImage,
+        recognizeReceiptImageByOCR,
         cancelRecognizeReceiptImage,
         parseImportDsvFile,
         parseImportTransaction,

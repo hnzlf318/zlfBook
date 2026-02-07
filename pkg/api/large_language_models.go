@@ -13,6 +13,7 @@ import (
 	"github.com/mayswind/ezbookkeeping/pkg/llm/data"
 	"github.com/mayswind/ezbookkeeping/pkg/log"
 	"github.com/mayswind/ezbookkeeping/pkg/models"
+	"github.com/mayswind/ezbookkeeping/pkg/ocr"
 	"github.com/mayswind/ezbookkeeping/pkg/services"
 	"github.com/mayswind/ezbookkeeping/pkg/settings"
 	"github.com/mayswind/ezbookkeeping/pkg/templates"
@@ -239,6 +240,134 @@ func (a *LargeLanguageModelsApi) RecognizeReceiptImageHandler(c *core.WebContext
 	}
 
 	return a.parseRecognizedReceiptImageResponse(c, uid, clientTimezone, result, accountMap, expenseCategoryMap, incomeCategoryMap, transferCategoryMap, tagMap)
+}
+
+// RecognizeReceiptImageByOCRHandler returns recognized transactions from bill list screenshot using traditional OCR (tesseract)
+func (a *LargeLanguageModelsApi) RecognizeReceiptImageByOCRHandler(c *core.WebContext) (any, *errs.Error) {
+	if !a.CurrentConfig().TransactionFromOCRImageRecognition {
+		return nil, errs.ErrLargeLanguageModelProviderNotEnabled
+	}
+
+	clientTimezone, err := c.GetClientTimezone()
+	if err != nil {
+		log.Warnf(c, "[large_language_models.RecognizeReceiptImageByOCRHandler] cannot get client timezone, because %s", err.Error())
+		return nil, errs.ErrClientTimezoneOffsetInvalid
+	}
+
+	uid := c.GetCurrentUid()
+	user, err := a.users.GetUserById(c, uid)
+	if err != nil {
+		if !errs.IsCustomError(err) {
+			log.Warnf(c, "[large_language_models.RecognizeReceiptImageByOCRHandler] failed to get user for user \"uid:%d\", because %s", uid, err.Error())
+		}
+		return nil, errs.ErrUserNotFound
+	}
+
+	if user.FeatureRestriction.Contains(core.USER_FEATURE_RESTRICTION_TYPE_CREATE_TRANSACTION_FROM_AI_IMAGE_RECOGNITION) {
+		return nil, errs.ErrNotPermittedToPerformThisAction
+	}
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		log.Errorf(c, "[large_language_models.RecognizeReceiptImageByOCRHandler] failed to get multi-part form data for user \"uid:%d\", because %s", uid, err.Error())
+		return nil, errs.ErrParameterInvalid
+	}
+
+	imageFiles := form.File["image"]
+	if len(imageFiles) < 1 {
+		log.Warnf(c, "[large_language_models.RecognizeReceiptImageByOCRHandler] there is no image in request for user \"uid:%d\"", uid)
+		return nil, errs.ErrNoAIRecognitionImage
+	}
+	if imageFiles[0].Size < 1 {
+		log.Warnf(c, "[large_language_models.RecognizeReceiptImageByOCRHandler] the size of image in request is zero for user \"uid:%d\"", uid)
+		return nil, errs.ErrAIRecognitionImageIsEmpty
+	}
+	if imageFiles[0].Size > int64(a.CurrentConfig().MaxAIRecognitionPictureFileSize) {
+		log.Warnf(c, "[large_language_models.RecognizeReceiptImageByOCRHandler] the upload file size \"%d\" exceeds the maximum size \"%d\" of image for user \"uid:%d\"", imageFiles[0].Size, a.CurrentConfig().MaxAIRecognitionPictureFileSize, uid)
+		return nil, errs.ErrExceedMaxAIRecognitionImageFileSize
+	}
+
+	fileExtension := utils.GetFileNameExtension(imageFiles[0].Filename)
+	contentType := utils.GetImageContentType(fileExtension)
+	if contentType == "" {
+		log.Warnf(c, "[large_language_models.RecognizeReceiptImageByOCRHandler] the file extension \"%s\" of image in request is not supported for user \"uid:%d\"", fileExtension, uid)
+		return nil, errs.ErrImageTypeNotSupported
+	}
+
+	imageFile, err := imageFiles[0].Open()
+	if err != nil {
+		log.Errorf(c, "[large_language_models.RecognizeReceiptImageByOCRHandler] failed to get image file from request for user \"uid:%d\", because %s", uid, err.Error())
+		return nil, errs.ErrOperationFailed
+	}
+	defer imageFile.Close()
+
+	imageData, err := io.ReadAll(imageFile)
+	if err != nil {
+		log.Errorf(c, "[large_language_models.RecognizeReceiptImageByOCRHandler] failed to read image file from request for user \"uid:%d\", because %s", uid, err.Error())
+		return nil, errs.ErrOperationFailed
+	}
+
+	ocrText, err := ocr.RunTesseract(imageData, ocr.TesseractLangBill)
+	if err != nil {
+		log.Warnf(c, "[large_language_models.RecognizeReceiptImageByOCRHandler] OCR failed for user \"uid:%d\", because %s", uid, err.Error())
+		return nil, errs.ErrTesseractNotAvailable
+	}
+
+	refTime := time.Now().In(clientTimezone)
+	parsedList := ocr.ParseBillListText(ocrText, refTime)
+	if len(parsedList) == 0 {
+		return nil, errs.ErrNoTransactionInformationInImage
+	}
+
+	accounts, err := a.accounts.GetAllAccountsByUid(c, uid)
+	if err != nil {
+		log.Errorf(c, "[large_language_models.RecognizeReceiptImageByOCRHandler] failed to get all accounts for user \"uid:%d\", because %s", uid, err.Error())
+		return nil, errs.Or(err, errs.ErrOperationFailed)
+	}
+	accountMap := a.accounts.GetVisibleAccountNameMapByList(accounts)
+
+	categories, err := a.transactionCategories.GetAllCategoriesByUid(c, uid, 0, -1)
+	if err != nil {
+		log.Errorf(c, "[large_language_models.RecognizeReceiptImageByOCRHandler] failed to get categories for user \"uid:%d\", because %s", uid, err.Error())
+		return nil, errs.Or(err, errs.ErrOperationFailed)
+	}
+	expenseCategoryMap := make(map[string]*models.TransactionCategory)
+	incomeCategoryMap := make(map[string]*models.TransactionCategory)
+	transferCategoryMap := make(map[string]*models.TransactionCategory)
+	for i := 0; i < len(categories); i++ {
+		cat := categories[i]
+		if cat.Hidden || cat.ParentCategoryId == models.LevelOneTransactionCategoryParentId {
+			continue
+		}
+		if cat.Type == models.CATEGORY_TYPE_EXPENSE {
+			expenseCategoryMap[cat.Name] = cat
+		} else if cat.Type == models.CATEGORY_TYPE_INCOME {
+			incomeCategoryMap[cat.Name] = cat
+		} else if cat.Type == models.CATEGORY_TYPE_TRANSFER {
+			transferCategoryMap[cat.Name] = cat
+		}
+	}
+
+	tags, err := a.transactionTags.GetAllTagsByUid(c, uid)
+	if err != nil {
+		log.Errorf(c, "[large_language_models.RecognizeReceiptImageByOCRHandler] failed to get tags for user \"uid:%d\", because %s", uid, err.Error())
+		return nil, errs.Or(err, errs.ErrOperationFailed)
+	}
+	tagMap := a.transactionTags.GetVisibleTagNameMapByList(tags)
+
+	transactions := make([]models.RecognizedReceiptImageResponse, 0, len(parsedList))
+	for _, one := range parsedList {
+		resp, parseErr := a.parseRecognizedReceiptImageResponse(c, uid, clientTimezone, one, accountMap, expenseCategoryMap, incomeCategoryMap, transferCategoryMap, tagMap)
+		if parseErr != nil {
+			continue
+		}
+		transactions = append(transactions, *resp)
+	}
+	if len(transactions) == 0 {
+		return nil, errs.ErrNoTransactionInformationInImage
+	}
+
+	return &models.RecognizedReceiptImageListResponse{Transactions: transactions}, nil
 }
 
 func (a *LargeLanguageModelsApi) parseRecognizedReceiptImageResponse(c *core.WebContext, uid int64, clientTimezone *time.Location, recognizedResult *models.RecognizedReceiptImageResult, accountMap map[string]*models.Account, expenseCategoryMap map[string]*models.TransactionCategory, incomeCategoryMap map[string]*models.TransactionCategory, transferCategoryMap map[string]*models.TransactionCategory, tagMap map[string]*models.TransactionTag) (*models.RecognizedReceiptImageResponse, *errs.Error) {

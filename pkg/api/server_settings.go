@@ -62,6 +62,10 @@ func (a *ServerSettingsApi) ServerSettingsJavascriptHandler(c *core.WebContext) 
 		}
 	}
 
+	if config.TransactionFromOCRImageRecognition {
+		a.appendBooleanSetting(builder, "llmo", config.TransactionFromOCRImageRecognition)
+	}
+
 	if config.LoginPageTips.Enabled {
 		a.appendMultiLanguageTipSetting(builder, "lpt", config.LoginPageTips)
 	}

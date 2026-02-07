@@ -13,6 +13,11 @@ type RecognizedReceiptImageResponse struct {
 	Comment              string          `json:"comment,omitempty"`
 }
 
+// RecognizedReceiptImageListResponse represents a list of recognized transactions (e.g. from OCR bill list)
+type RecognizedReceiptImageListResponse struct {
+	Transactions []RecognizedReceiptImageResponse `json:"transactions"`
+}
+
 // RecognizedReceiptImageResult represents the result of recognized receipt image
 type RecognizedReceiptImageResult struct {
 	Type                   string   `json:"type,omitempty" jsonschema:"enum=income,enum=expense,enum=transfer" jsonschema_description:"Transaction type (income, expense, transfer)"`
