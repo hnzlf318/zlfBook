@@ -90,7 +90,7 @@ jobs:
           if ($env:RELEASE_BUILD -ne "1") {
             $env:buildUnixTime = [int][double]::Parse((Get-Date -UFormat %s))
           }
-          npm run build
+          npx vite build
 
       - name: Create package directory
         shell: pwsh
