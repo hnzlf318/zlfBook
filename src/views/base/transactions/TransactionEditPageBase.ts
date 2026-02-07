@@ -12,7 +12,6 @@ import { useExchangeRatesStore } from '@/stores/exchangeRates.ts';
 
 import type { NumeralSystem } from '@/core/numeral.ts';
 import type { WeekDayValue } from '@/core/datetime.ts';
-import type { LocalizedTimezoneInfo } from '@/core/timezone.ts';
 import { TransactionType } from '@/core/transaction.ts';
 import { TemplateType } from '@/core/template.ts';
 import { DISPLAY_HIDDEN_AMOUNT } from '@/consts/numeral.ts';
@@ -35,7 +34,6 @@ import {
 } from '@/lib/numeral.ts';
 
 import {
-    getUtcOffsetByUtcOffsetMinutes,
     getTimezoneOffsetMinutes,
     getSameDateTimeWithCurrentTimezone,
     parseDateTimeFromUnixTimeWithBrowserTimezone,
@@ -53,18 +51,10 @@ export enum TransactionEditPageMode {
     View = 'view'
 }
 
-export enum GeoLocationStatus {
-    Getting = 'getting',
-    Success = 'success',
-    Error = 'error'
-}
-
 export function useTransactionEditPageBase(type: TransactionEditPageType, initMode?: TransactionEditPageMode, transactionDefaultType?: number) {
     const {
         tt,
-        getAllTimezones,
         getCurrentNumeralSystemType,
-        getTimezoneDifferenceDisplayText,
         formatAmountToLocalizedNumeralsWithCurrency,
         getAdaptiveAmountRate,
         getCategorizedAccountsWithDisplayBalance
@@ -78,8 +68,6 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
     const transactionsStore = useTransactionsStore();
     const exchangeRatesStore = useExchangeRatesStore();
 
-    const isSupportGeoLocation: boolean = !!navigator.geolocation;
-
     const mode = ref<TransactionEditPageMode>(initMode ?? TransactionEditPageMode.Add);
     const editId = ref<string | null>(null);
     const addByTemplateId = ref<string | null>(null);
@@ -89,8 +77,6 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
     const loading = ref<boolean>(true);
     const submitting = ref<boolean>(false);
     const uploadingPicture = ref<boolean>(false);
-    const geoLocationStatus = ref<GeoLocationStatus | null>(null);
-    const setGeoLocationByClickMap = ref<boolean>(false);
 
     const transaction = ref<Transaction | TransactionTemplate>(createNewTransactionModel(transactionDefaultType));
 
@@ -103,7 +89,6 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
     const firstDayOfWeek = computed<WeekDayValue>(() => userStore.currentUserFirstDayOfWeek);
     const coordinateDisplayType = computed<number>(() => userStore.currentUserCoordinateDisplayType);
 
-    const allTimezones = computed<LocalizedTimezoneInfo[]>(() => getAllTimezones(transaction.value.time, true));
     const allAccounts = computed<Account[]>(() => accountsStore.allPlainAccounts);
     const allVisibleAccounts = computed<Account[]>(() => accountsStore.allVisiblePlainAccounts);
     const allAccountsMap = computed<Record<string, Account>>(() => accountsStore.allAccountsMap);
@@ -271,25 +256,6 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
         return defaultCurrency.value;
     });
 
-    const transactionDisplayTimezone = computed<string>(() => {
-        const utcOffset = numeralSystem.value.replaceWesternArabicDigitsToLocalizedDigits(getUtcOffsetByUtcOffsetMinutes(transaction.value.utcOffset));
-        return `UTC${utcOffset}`;
-    });
-
-    const transactionTimezoneTimeDifference = computed<string>(() => {
-        return getTimezoneDifferenceDisplayText(transaction.value.time, transaction.value.utcOffset);
-    });
-
-    const geoLocationStatusInfo = computed<string>(() => {
-        if (geoLocationStatus.value === GeoLocationStatus.Success) {
-            return '';
-        } else if (geoLocationStatus.value === GeoLocationStatus.Getting) {
-            return tt('Getting Location...');
-        } else {
-            return tt('No Location');
-        }
-    });
-
     const inputEmptyProblemMessage = computed<string | null>(() => {
         if (transaction.value.type === TransactionType.Expense) {
             if (!transaction.value.expenseCategoryId || transaction.value.expenseCategoryId === '') {
@@ -361,21 +327,6 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
 
     function updateTransactionTime(newTime: number): void {
         transaction.value.time = newTime;
-        updateTransactionTimezone(transaction.value.timeZone ?? '');
-    }
-
-    function updateTransactionTimezone(timezoneName: string): void {
-        const oldUtcOffset = transaction.value.utcOffset;
-
-        for (const timezone of allTimezones.value) {
-            if (timezone.name === timezoneName) {
-                transaction.value.timeZone = timezone.name;
-                transaction.value.utcOffset = timezone.utcOffsetMinutes;
-                break;
-            }
-        }
-
-        transaction.value.time = transaction.value.time - (transaction.value.utcOffset - oldUtcOffset) * 60;
     }
 
     function swapTransactionData(swapAccount: boolean, swapAmount: boolean): void {
@@ -443,8 +394,6 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
     });
 
     return {
-        // constants
-        isSupportGeoLocation,
         // states
         mode,
         editId,
@@ -454,8 +403,6 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
         loading,
         submitting,
         uploadingPicture,
-        geoLocationStatus,
-        setGeoLocationByClickMap,
         transaction,
         // computed states
         numeralSystem,
@@ -465,7 +412,6 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
         defaultAccountId,
         firstDayOfWeek,
         coordinateDisplayType,
-        allTimezones,
         allAccounts,
         allVisibleAccounts,
         allAccountsMap,
@@ -489,15 +435,11 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
         destinationAccountName,
         sourceAccountCurrency,
         destinationAccountCurrency,
-        transactionDisplayTimezone,
-        transactionTimezoneTimeDifference,
-        geoLocationStatusInfo,
         inputEmptyProblemMessage,
         inputIsEmpty,
         // functions
         createNewTransactionModel,
         updateTransactionTime,
-        updateTransactionTimezone,
         swapTransactionData,
         getDisplayAmount,
         getTransactionPictureUrl

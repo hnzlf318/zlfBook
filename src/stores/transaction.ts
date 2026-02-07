@@ -469,7 +469,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
         }
     }
 
-    function isTransactionDraftModified(transaction?: Transaction, initAmount?: number, initCategoryId?: string, initAccountId?: string, initTagIds?: string, firstVisibleAccountId?: string): boolean {
+    function isTransactionDraftModified(transaction?: Transaction, initAmount?: number, initCategoryId?: string, initAccountId?: string, initTagIds?: string, initItemIds?: string, firstVisibleAccountId?: string): boolean {
         if (!transaction) {
             return false;
         }
@@ -522,6 +522,10 @@ export const useTransactionsStore = defineStore('transactions', () => {
             return !initTagIds || !isArray1SubsetOfArray2(transaction.tagIds, initTagIds.split(','));
         }
 
+        if (transaction.itemIds && transaction.itemIds.length > 0) {
+            return !initItemIds || !isArray1SubsetOfArray2(transaction.itemIds, initItemIds.split(','));
+        }
+
         if (transaction.pictures && transaction.pictures.length > 0) {
             return true;
         }
@@ -533,14 +537,14 @@ export const useTransactionsStore = defineStore('transactions', () => {
         return false;
     }
 
-    function saveTransactionDraft(transaction?: Transaction, initAmount?: number, initCategoryId?: string, initAccountId?: string, initTagIds?: string, firstVisibleAccountId?: string): void {
+    function saveTransactionDraft(transaction?: Transaction, initAmount?: number, initCategoryId?: string, initAccountId?: string, initTagIds?: string, initItemIds?: string, firstVisibleAccountId?: string): void {
         if (settingsStore.appSettings.autoSaveTransactionDraft !== 'enabled' && settingsStore.appSettings.autoSaveTransactionDraft !== 'confirmation') {
             clearTransactionDraft();
             return;
         }
 
         if (transaction) {
-            if (!isTransactionDraftModified(transaction, initAmount, initCategoryId, initAccountId, initTagIds, firstVisibleAccountId)) {
+            if (!isTransactionDraftModified(transaction, initAmount, initCategoryId, initAccountId, initTagIds, initItemIds, firstVisibleAccountId)) {
                 clearTransactionDraft();
                 return;
             }

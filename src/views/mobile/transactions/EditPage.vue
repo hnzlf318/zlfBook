@@ -302,58 +302,6 @@
             </f7-list-item>
 
             <f7-list-item
-                :no-chevron="mode === TransactionEditPageMode.View"
-                link="#"
-                class="list-item-with-header-and-title list-item-title-hide-overflow list-item-no-item-after"
-                :class="{ 'disabled': mode === TransactionEditPageMode.Edit && transaction.type === TransactionType.ModifyBalance, 'readonly': mode === TransactionEditPageMode.View }"
-                :header="tt('Transaction Timezone')"
-                v-if="pageTypeAndMode?.type === TransactionEditPageType.Transaction || (pageTypeAndMode?.type === TransactionEditPageType.Template && transaction instanceof TransactionTemplate && transaction.templateType === TemplateType.Schedule.type)"
-                @click="showTimezonePopup = true"
-            >
-                <template #title>
-                    <f7-block class="list-item-custom-title no-padding no-margin">
-                        <span>{{ `(${transactionDisplayTimezone})` }}</span>
-                        <span class="transaction-edit-timezone-name" v-if="transaction.timeZone || transaction.timeZone === ''">{{ transactionDisplayTimezoneName }}</span>
-                        <span class="transaction-edit-timezone-name" v-else-if="!transaction.timeZone && transaction.timeZone !== ''">{{ transactionTimezoneTimeDifference }}</span>
-                    </f7-block>
-                </template>
-                <list-item-selection-popup value-type="item"
-                                           key-field="name" value-field="name"
-                                           title-field="displayNameWithUtcOffset"
-                                           :title="tt('Transaction Timezone')"
-                                           :enable-filter="true"
-                                           :filter-placeholder="tt('Timezone')"
-                                           :filter-no-items-text="tt('No results')"
-                                           :items="allTimezones"
-                                           :model-value="transaction.timeZone"
-                                           v-model:show="showTimezonePopup"
-                                           @update:model-value="updateTransactionTimezone">
-                </list-item-selection-popup>
-            </f7-list-item>
-
-            <f7-list-item
-                link="#" no-chevron
-                class="list-item-with-header-and-title list-item-title-hide-overflow"
-                :class="{ 'readonly': mode === TransactionEditPageMode.View && !transaction.geoLocation }"
-                :header="tt('Geographic Location')"
-                @click="showGeoLocationActionSheet = true"
-                v-if="pageTypeAndMode?.type === TransactionEditPageType.Transaction"
-            >
-                <template #title>
-                    <f7-block class="list-item-custom-title no-padding no-margin">
-                        <span v-if="transaction.geoLocation">{{ `(${formatCoordinate(transaction.geoLocation, coordinateDisplayType)})` }}</span>
-                        <span v-else-if="!transaction.geoLocation">{{ geoLocationStatusInfo }}</span>
-                    </f7-block>
-                </template>
-
-                <map-sheet :readonly="mode === TransactionEditPageMode.View"
-                           v-model="transaction.geoLocation"
-                           v-model:set-geo-location-by-click-map="setGeoLocationByClickMap"
-                           v-model:show="showGeoLocationMapSheet">
-                </map-sheet>
-            </f7-list-item>
-
-            <f7-list-item
                 link="#" no-chevron
                 :class="{ 'readonly': mode === TransactionEditPageMode.View }"
                 :header="tt('Tags')"
@@ -377,6 +325,35 @@
                     </f7-block>
                     <f7-block class="margin-top-half no-padding no-margin" v-else-if="!transaction.tagIds || !transaction.tagIds.length">
                         <f7-chip class="transaction-edit-tag" :text="tt('None')">
+                        </f7-chip>
+                    </f7-block>
+                </template>
+            </f7-list-item>
+
+            <f7-list-item
+                link="#" no-chevron
+                :class="{ 'readonly': mode === TransactionEditPageMode.View }"
+                :header="tt('Transaction Items')"
+                @click="showTransactionItemSheet = true"
+            >
+                <transaction-item-selection-sheet :enable-filter="true"
+                                                  v-model:show="showTransactionItemSheet"
+                                                  v-model="transaction.itemIds">
+                </transaction-item-selection-sheet>
+
+                <template #footer>
+                    <f7-block class="margin-top-half no-padding no-margin" v-if="transaction.itemIds && transaction.itemIds.length">
+                        <f7-chip media-text-color="var(--f7-chip-text-color)" class="transaction-edit-item"
+                                 :text="(transactionItemsStore.allTransactionItemsMap?.[itemId] ?? { name: '' }).name"
+                                 :key="itemId"
+                                 v-for="itemId in transaction.itemIds">
+                            <template #media>
+                                <f7-icon f7="list_bullet"></f7-icon>
+                            </template>
+                        </f7-chip>
+                    </f7-block>
+                    <f7-block class="margin-top-half no-padding no-margin" v-else-if="!transaction.itemIds || !transaction.itemIds.length">
+                        <f7-chip class="transaction-edit-item" :text="tt('None')">
                         </f7-chip>
                     </f7-block>
                 </template>
@@ -430,19 +407,6 @@
             ></f7-list-input>
         </f7-list>
 
-        <f7-actions close-by-outside-click close-on-escape :opened="showGeoLocationActionSheet" @actions:closed="showGeoLocationActionSheet = false">
-            <f7-actions-group>
-                <f7-actions-button v-if="mode !== TransactionEditPageMode.View" @click="updateGeoLocation(true)">{{ tt('Update Geographic Location') }}</f7-actions-button>
-                <f7-actions-button v-if="mode !== TransactionEditPageMode.View" @click="clearGeoLocation">{{ tt('Clear Geographic Location') }}</f7-actions-button>
-            </f7-actions-group>
-            <f7-actions-group v-if="!!getMapProvider()">
-                <f7-actions-button :class="{ 'disabled': !transaction.geoLocation }" @click="setGeoLocationByClickMap = false; showGeoLocationMapSheet = true">{{ tt('Show on the map') }}</f7-actions-button>
-            </f7-actions-group>
-            <f7-actions-group>
-                <f7-actions-button bold close>{{ tt('Cancel') }}</f7-actions-button>
-            </f7-actions-group>
-        </f7-actions>
-
         <f7-actions close-by-outside-click close-on-escape :opened="showMoreActionSheet" @actions:closed="showMoreActionSheet = false">
             <f7-actions-group v-if="mode !== TransactionEditPageMode.View && transaction.type === TransactionType.Transfer">
                 <f7-actions-button @click="swapTransactionData(true, false)">{{ tt('Swap Account') }}</f7-actions-button>
@@ -483,7 +447,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, useTemplateRef } from 'vue';
+import { ref, computed, useTemplateRef, unref } from 'vue';
 import type { PhotoBrowser, Router } from 'framework7/types';
 
 import { useI18n } from '@/locales/helpers.ts';
@@ -491,7 +455,6 @@ import { useI18nUIComponents, isiOS, showLoading, hideLoading } from '@/lib/ui/m
 import {
     TransactionEditPageMode,
     TransactionEditPageType,
-    GeoLocationStatus,
     useTransactionEditPageBase
 } from '@/views/base/transactions/TransactionEditPageBase.ts';
 
@@ -500,6 +463,7 @@ import { useUserStore } from '@/stores/user.ts';
 import { useAccountsStore } from '@/stores/account.ts';
 import { useTransactionCategoriesStore } from '@/stores/transactionCategory.ts';
 import { useTransactionTagsStore } from '@/stores/transactionTag.ts';
+import { useTransactionItemsStore } from '@/stores/transactionItem.ts';
 import { useTransactionsStore } from '@/stores/transaction.ts';
 import { useTransactionTemplatesStore } from '@/stores/transactionTemplate.ts';
 
@@ -519,11 +483,10 @@ import {
     getTimezoneOffsetMinutes,
     parseDateTimeFromUnixTimeWithTimezoneOffset
 } from '@/lib/datetime.ts';
-import { formatCoordinate } from '@/lib/coordinate.ts';
 import { generateRandomUUID } from '@/lib/misc.ts';
 import { getTransactionPrimaryCategoryName, getTransactionSecondaryCategoryName } from '@/lib/category.ts';
 import { setTransactionModelByTransaction } from '@/lib/transaction.ts';
-import { getMapProvider, isTransactionPicturesEnabled } from '@/lib/server_settings.ts';
+import { isTransactionPicturesEnabled } from '@/lib/server_settings.ts';
 import logger from '@/lib/logger.ts';
 
 const props = defineProps<{
@@ -547,7 +510,6 @@ const { showAlert, showConfirm, showToast, routeBackOnError } = useI18nUICompone
 
 const {
     mode,
-    isSupportGeoLocation,
     editId,
     addByTemplateId,
     duplicateFromId,
@@ -555,8 +517,6 @@ const {
     loading,
     submitting,
     uploadingPicture,
-    geoLocationStatus,
-    setGeoLocationByClickMap,
     transaction,
     numeralSystem,
     currentTimezoneOffsetMinutes,
@@ -564,7 +524,6 @@ const {
     defaultAccountId,
     firstDayOfWeek,
     coordinateDisplayType,
-    allTimezones,
     allVisibleAccounts,
     allAccountsMap,
     allVisibleCategorizedAccounts,
@@ -585,13 +544,9 @@ const {
     destinationAccountName,
     sourceAccountCurrency,
     destinationAccountCurrency,
-    transactionDisplayTimezone,
-    transactionTimezoneTimeDifference,
-    geoLocationStatusInfo,
     inputEmptyProblemMessage,
     inputIsEmpty,
     updateTransactionTime,
-    updateTransactionTimezone,
     swapTransactionData,
     getDisplayAmount,
     getTransactionPictureUrl
@@ -602,6 +557,7 @@ const userStore = useUserStore();
 const accountsStore = useAccountsStore();
 const transactionCategoriesStore = useTransactionCategoriesStore();
 const transactionTagsStore = useTransactionTagsStore();
+const transactionItemsStore = useTransactionItemsStore();
 const transactionsStore = useTransactionsStore();
 const transactionTemplatesStore = useTransactionTemplatesStore();
 
@@ -615,8 +571,6 @@ const submitted = ref<boolean>(false);
 const removingPictureId = ref<string | null>(null);
 const transactionDateTimeSheetMode = ref<string>('time');
 const showTimeInDefaultTimezone = ref<boolean>(false);
-const showTimezonePopup = ref<boolean>(false);
-const showGeoLocationActionSheet = ref<boolean>(false);
 const showMoreActionSheet = ref<boolean>(false);
 const showSourceAmountSheet = ref<boolean>(false);
 const showDestinationAmountSheet = ref<boolean>(false);
@@ -627,8 +581,8 @@ const showTransactionDateTimeSheet = ref<boolean>(false);
 const showTransactionScheduledFrequencySheet = ref<boolean>(false);
 const showScheduledStartDateSheet = ref<boolean>(false);
 const showScheduledEndDateSheet = ref<boolean>(false);
-const showGeoLocationMapSheet = ref<boolean>(false);
 const showTransactionTagSheet = ref<boolean>(false);
+const showTransactionItemSheet = ref<boolean>(false);
 const showTransactionPictures = ref<boolean>(pageTypeAndMode?.type === TransactionEditPageType.Transaction
     && (pageTypeAndMode?.mode === TransactionEditPageMode.Add || pageTypeAndMode?.mode === TransactionEditPageMode.Edit)
     && settingsStore.appSettings.alwaysShowTransactionPicturesInMobileTransactionEditPage);
@@ -675,16 +629,6 @@ const transactionDisplayTime = computed<string>(() => {
     const dateTime = parseDateTimeFromUnixTimeWithTimezoneOffset(transaction.value.time, getTimezoneOffsetMinutes(transaction.value.time));
     const utcOffset = numeralSystem.value.replaceWesternArabicDigitsToLocalizedDigits(getTimezoneOffset(transaction.value.time));
     return `${formatDateTimeToLongTime(dateTime)} (UTC${utcOffset})`;
-});
-
-const transactionDisplayTimezoneName = computed<string>(() => {
-    for (const timezone of allTimezones.value) {
-        if (timezone.name === transaction.value.timeZone) {
-            return timezone.displayName;
-        }
-    }
-
-    return '';
 });
 
 const transactionPictures = computed<Record<string, string | undefined>[]>(() => {
@@ -840,6 +784,7 @@ function init(): void {
         accountsStore.loadAllAccounts({ force: false }),
         transactionCategoriesStore.loadAllCategories({ force: false }),
         transactionTagsStore.loadAllTags({ force: false }),
+        transactionItemsStore.loadAllItems({ force: false }),
         transactionTemplatesStore.loadAllTemplates({ force: false, templateType: TemplateType.Normal.type })
     ];
 
@@ -894,7 +839,7 @@ function init(): void {
     }
 
     Promise.all(promises).then(function (responses) {
-        if (query['id'] && !responses[4]) {
+        if (query['id'] && !responses[5]) {
             if (pageTypeAndMode.type === TransactionEditPageType.Transaction) {
                 showToast('Unable to retrieve transaction');
                 loadingError.value = 'Unable to retrieve transaction';
@@ -909,8 +854,8 @@ function init(): void {
         let fromTransaction: Transaction | TransactionTemplate | null = null;
 
         if (pageTypeAndMode.type === TransactionEditPageType.Transaction) {
-            if (query['id'] && responses[4] instanceof Transaction) {
-                fromTransaction = responses[4];
+            if (query['id'] && responses[5] instanceof Transaction) {
+                fromTransaction = responses[5];
             } else if (query['templateId'] && transactionTemplatesStore.allTransactionTemplatesMap && transactionTemplatesStore.allTransactionTemplatesMap[TemplateType.Normal.type]) {
                 fromTransaction = (transactionTemplatesStore.allTransactionTemplatesMap[TemplateType.Normal.type] as Record<string, TransactionTemplate>)[query['templateId']] ?? null;
 
@@ -920,9 +865,9 @@ function init(): void {
             } else if (query['noTransactionDraft'] !== 'true' && (settingsStore.appSettings.autoSaveTransactionDraft === 'enabled' || settingsStore.appSettings.autoSaveTransactionDraft === 'confirmation') && transactionsStore.transactionDraft) {
                 fromTransaction = Transaction.ofDraft(transactionsStore.transactionDraft);
             }
-        } else if (pageTypeAndMode.type === TransactionEditPageType.Template && responses[4] instanceof TransactionTemplate) {
+        } else if (pageTypeAndMode.type === TransactionEditPageType.Template && responses[5] instanceof TransactionTemplate) {
             if (query['id']) {
-                fromTransaction = responses[4];
+                fromTransaction = responses[5];
             }
         }
 
@@ -934,6 +879,7 @@ function init(): void {
             allVisibleAccounts.value,
             allAccountsMap.value,
             allTagsMap.value,
+            (unref(transactionItemsStore.allTransactionItemsMap) ?? {}) as Record<string, { id: string; hidden?: boolean }>,
             defaultAccountId.value,
             {
                 time: query['time'] ? parseInt(query['time']) : undefined,
@@ -944,23 +890,20 @@ function init(): void {
                 amount: query['amount'] ? parseInt(query['amount']) : undefined,
                 destinationAmount: query['destinationAmount'] ? parseInt(query['destinationAmount']) : undefined,
                 tagIds: query['tagIds'],
+                itemIds: query['itemIds'],
                 comment: query['comment']
             },
             pageTypeAndMode.type === TransactionEditPageType.Transaction && (mode.value === TransactionEditPageMode.Edit || mode.value === TransactionEditPageMode.View)
         );
 
-        if (pageTypeAndMode.type === TransactionEditPageType.Transaction && query['id'] && responses[4] instanceof Transaction) {
+        if (pageTypeAndMode.type === TransactionEditPageType.Transaction && query['id'] && responses[5] instanceof Transaction) {
             if (fromTransaction && query['withTime'] && query['withTime'] === 'true') {
                 transaction.value.time = fromTransaction.time;
                 transaction.value.timeZone = fromTransaction.timeZone;
                 transaction.value.utcOffset = fromTransaction.utcOffset;
             }
-
-            if (fromTransaction && query['withGeoLocation'] && query['withGeoLocation'] === 'true') {
-                transaction.value.setGeoLocation(fromTransaction.geoLocation);
-            }
-        } else if (pageTypeAndMode.type === TransactionEditPageType.Template && query['id'] && responses[4] instanceof TransactionTemplate) {
-            const template = responses[4];
+        } else if (pageTypeAndMode.type === TransactionEditPageType.Template && query['id'] && responses[5] instanceof TransactionTemplate) {
+            const template = responses[5];
             transaction.value.id = template.id;
 
             if (!(transaction.value instanceof TransactionTemplate)) {
@@ -1125,48 +1068,6 @@ function pasteAmount(type: 'sourceAmount' | 'destinationAmount'): void {
     });
 }
 
-function updateGeoLocation(forceUpdate: boolean): void {
-    if (!isSupportGeoLocation) {
-        logger.warn('this browser does not support geo location');
-
-        if (forceUpdate) {
-            showToast('Unable to retrieve current position');
-        }
-        return;
-    }
-
-    navigator.geolocation.getCurrentPosition(function (position) {
-        if (!position || !position.coords) {
-            logger.error('current position is null');
-            geoLocationStatus.value = GeoLocationStatus.Error;
-
-            if (forceUpdate) {
-                showToast('Unable to retrieve current position');
-            }
-
-            return;
-        }
-
-        geoLocationStatus.value = GeoLocationStatus.Success;
-
-        transaction.value.setLatitudeAndLongitude(position.coords.latitude, position.coords.longitude);
-    }, function (err) {
-        logger.error('cannot retrieve current position', err);
-        geoLocationStatus.value = GeoLocationStatus.Error;
-
-        if (forceUpdate) {
-            showToast('Unable to retrieve current position');
-        }
-    });
-
-    geoLocationStatus.value = GeoLocationStatus.Getting;
-}
-
-function clearGeoLocation(): void {
-    geoLocationStatus.value = null;
-    transaction.value.removeGeoLocation();
-}
-
 function showDateTimeDialog(sheetMode: string): void {
     if (mode.value === TransactionEditPageMode.View) {
         showTimeInDefaultTimezone.value = !showTimeInDefaultTimezone.value;
@@ -1253,10 +1154,6 @@ function duplicate(withTime?: boolean, withGeoLocation?: boolean): void {
 function onPageAfterIn(): void {
     routeBackOnError(props.f7router, loadingError);
 
-    if (settingsStore.appSettings.autoGetCurrentGeoLocation && mode.value === TransactionEditPageMode.Add
-        && !geoLocationStatus.value && !transaction.value.geoLocation) {
-        updateGeoLocation(false);
-    }
 }
 
 function onPageBeforeOut(): void {
@@ -1267,9 +1164,9 @@ function onPageBeforeOut(): void {
     const initAmount: number | undefined = query['amount'] ? parseInt(query['amount']) : undefined;
 
     if (settingsStore.appSettings.autoSaveTransactionDraft === 'confirmation') {
-        if (transactionsStore.isTransactionDraftModified(transaction.value, initAmount, query['categoryId'], query['accountId'], query['tagIds'], firstVisibleAccountId.value)) {
+        if (transactionsStore.isTransactionDraftModified(transaction.value, initAmount, query['categoryId'], query['accountId'], query['tagIds'], query['itemIds'], firstVisibleAccountId.value)) {
             showConfirm('Do you want to save this transaction draft?', () => {
-                transactionsStore.saveTransactionDraft(transaction.value, initAmount, query['categoryId'], query['accountId'], query['tagIds'], firstVisibleAccountId.value);
+                transactionsStore.saveTransactionDraft(transaction.value, initAmount, query['categoryId'], query['accountId'], query['tagIds'], query['itemIds'], firstVisibleAccountId.value);
             }, () => {
                 transactionsStore.clearTransactionDraft();
             });
@@ -1277,7 +1174,7 @@ function onPageBeforeOut(): void {
             transactionsStore.clearTransactionDraft();
         }
     } else if (settingsStore.appSettings.autoSaveTransactionDraft === 'enabled') {
-        transactionsStore.saveTransactionDraft(transaction.value, initAmount, query['categoryId'], query['accountId'], query['tagIds'], firstVisibleAccountId.value);
+        transactionsStore.saveTransactionDraft(transaction.value, initAmount, query['categoryId'], query['accountId'], query['tagIds'], query['itemIds'], firstVisibleAccountId.value);
     }
 }
 

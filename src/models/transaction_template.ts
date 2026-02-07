@@ -15,8 +15,8 @@ export class TransactionTemplate extends Transaction implements TransactionTempl
     public displayOrder: number;
     public hidden: boolean;
 
-    private constructor(id: string, templateType: number, name: string, type: number, categoryId: string, timeZone: string | undefined, utcOffset: number, sourceAccountId: string, destinationAccountId: string, sourceAmount: number, destinationAmount: number, hideAmount: boolean, scheduledFrequencyType: number | undefined, scheduledFrequency: string | undefined, scheduledStartDate: TextualYearMonthDay | undefined, scheduledEndDate: TextualYearMonthDay | undefined, scheduledAt: number | undefined, tagIds: string[], comment: string, editable: boolean, displayOrder: number, hidden: boolean) {
-        super(id, '', type, categoryId, 0, timeZone, utcOffset, sourceAccountId, destinationAccountId, sourceAmount, destinationAmount, hideAmount, tagIds, comment, editable);
+    private constructor(id: string, templateType: number, name: string, type: number, categoryId: string, timeZone: string | undefined, utcOffset: number, sourceAccountId: string, destinationAccountId: string, sourceAmount: number, destinationAmount: number, hideAmount: boolean, scheduledFrequencyType: number | undefined, scheduledFrequency: string | undefined, scheduledStartDate: TextualYearMonthDay | undefined, scheduledEndDate: TextualYearMonthDay | undefined, scheduledAt: number | undefined, tagIds: string[], itemIds: string[], comment: string, editable: boolean, displayOrder: number, hidden: boolean) {
+        super(id, '', type, categoryId, 0, timeZone, utcOffset, sourceAccountId, destinationAccountId, sourceAmount, destinationAmount, hideAmount, tagIds, itemIds, comment, editable);
         this.templateType = templateType;
         this.name = name;
         this.scheduledFrequencyType = scheduledFrequencyType;
@@ -54,6 +54,7 @@ export class TransactionTemplate extends Transaction implements TransactionTempl
             destinationAmount: this.type === TransactionType.Transfer ? this.destinationAmount : 0,
             hideAmount: this.hideAmount,
             tagIds: this.tagIds,
+            itemIds: this.itemIds,
             comment: this.comment,
             scheduledFrequencyType: this.templateType === TemplateType.Schedule.type ? this.scheduledFrequencyType : undefined,
             scheduledFrequency: this.templateType === TemplateType.Schedule.type ? this.scheduledFrequency : undefined,
@@ -76,6 +77,7 @@ export class TransactionTemplate extends Transaction implements TransactionTempl
             destinationAmount: this.type === TransactionType.Transfer ? this.destinationAmount : 0,
             hideAmount: this.hideAmount,
             tagIds: this.tagIds,
+            itemIds: this.itemIds,
             comment: this.comment,
             scheduledFrequencyType: this.templateType === TemplateType.Schedule.type ? this.scheduledFrequencyType : undefined,
             scheduledFrequency: this.templateType === TemplateType.Schedule.type ? this.scheduledFrequency : undefined,
@@ -105,6 +107,7 @@ export class TransactionTemplate extends Transaction implements TransactionTempl
             undefined, // scheduledEndDate
             undefined, // scheduledAt
             transaction.tagIds,
+            transaction.itemIds,
             transaction.comment,
             true,
             0,
@@ -132,6 +135,7 @@ export class TransactionTemplate extends Transaction implements TransactionTempl
             templateResponse.scheduledEndDate ?? undefined,
             templateResponse.scheduledAt,
             templateResponse.tagIds,
+            templateResponse.itemIds ?? [],
             templateResponse.comment,
             true, // editable
             templateResponse.displayOrder,
@@ -161,6 +165,7 @@ export interface TransactionTemplateCreateRequest {
     readonly destinationAmount: number;
     readonly hideAmount: boolean;
     readonly tagIds: string[];
+    readonly itemIds: string[];
     readonly comment: string;
     readonly scheduledFrequencyType?: number;
     readonly scheduledFrequency?: string;
@@ -181,6 +186,7 @@ export interface TransactionTemplateModifyRequest {
     readonly destinationAmount: number;
     readonly hideAmount: boolean;
     readonly tagIds: string[];
+    readonly itemIds: string[];
     readonly comment: string;
     readonly scheduledFrequencyType?: number;
     readonly scheduledFrequency?: string;

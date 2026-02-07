@@ -29,10 +29,11 @@ export interface SetTransactionOptions {
     amount?: number;
     destinationAmount?: number;
     tagIds?: string;
+    itemIds?: string;
     comment?: string;
 }
 
-export function setTransactionModelByTransaction(transaction: Transaction, transaction2: Transaction | null | undefined, allCategories: Record<number, TransactionCategory[]>, allCategoriesMap: Record<string, TransactionCategory>, allVisibleAccounts: Account[], allAccountsMap: Record<string, Account>, allTagsMap: Record<string, TransactionTag>, defaultAccountId: string, options: SetTransactionOptions, setContextData: boolean): void {
+export function setTransactionModelByTransaction(transaction: Transaction, transaction2: Transaction | null | undefined, allCategories: Record<number, TransactionCategory[]>, allCategoriesMap: Record<string, TransactionCategory>, allVisibleAccounts: Account[], allAccountsMap: Record<string, Account>, allTagsMap: Record<string, TransactionTag>, allItemsMap: Record<string, { id: string; hidden?: boolean }>, defaultAccountId: string, options: SetTransactionOptions, setContextData: boolean): void {
     if (isDefined(options.time)) {
         transaction.time = options.time;
         transaction.utcOffset = getTimezoneOffsetMinutes(transaction.time, transaction.timeZone);
@@ -152,6 +153,21 @@ export function setTransactionModelByTransaction(transaction: Transaction, trans
         transaction.tagIds = finalTagIds;
     }
 
+    if (allItemsMap && options.itemIds) {
+        const itemIds = options.itemIds.split(',');
+        const finalItemIds: string[] = [];
+
+        for (const itemId of itemIds) {
+            const item = allItemsMap[itemId];
+
+            if (item && (item.hidden === undefined || !item.hidden)) {
+                finalItemIds.push(item.id);
+            }
+        }
+
+        transaction.itemIds = finalItemIds;
+    }
+
     if (options.comment) {
         transaction.comment = options.comment;
     }
@@ -195,12 +211,9 @@ export function setTransactionModelByTransaction(transaction: Transaction, trans
 
         transaction.hideAmount = transaction2.hideAmount;
         transaction.tagIds = transaction2.tagIds || [];
+        transaction.itemIds = transaction2.itemIds || [];
         transaction.setPictures(TransactionPicture.ofMulti(transaction2.pictures || []));
 
         transaction.comment = transaction2.comment;
-
-        if (setContextData) {
-            transaction.setGeoLocation(transaction2.geoLocation);
-        }
     }
 }

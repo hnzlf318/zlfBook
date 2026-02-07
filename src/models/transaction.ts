@@ -6,6 +6,7 @@ import { TransactionType, TransactionTagFilterType } from '@/core/transaction.ts
 import { Account, type AccountInfoResponse } from './account.ts';
 import { TransactionCategory, type TransactionCategoryInfoResponse } from './transaction_category.ts';
 import { TransactionTag, type TransactionTagInfoResponse } from './transaction_tag.ts';
+import type { TransactionItemInfoResponse } from './transaction_item.ts';
 import { TransactionPicture, type TransactionPictureInfoBasicResponse } from './transaction_picture_info.ts';
 
 export class Transaction implements TransactionInfoResponse {
@@ -24,6 +25,7 @@ export class Transaction implements TransactionInfoResponse {
     public destinationAmount: number;
     public hideAmount: boolean;
     public tagIds: string[];
+    public itemIds: string[];
     public comment: string;
     public editable: boolean;
 
@@ -34,12 +36,13 @@ export class Transaction implements TransactionInfoResponse {
     private _sourceAccount?: Account; // only for displaying transaction
     private _destinationAccount?: Account; // only for displaying transaction
     private _tags?: TransactionTag[]; // only for displaying transaction
+    private _items?: TransactionItemInfoResponse[]; // only for displaying transaction
 
     private _gregorianCalendarYearDashMonthDashDay?: TextualYearMonthDay = undefined; // only for displaying transaction in transaction list
     private _gregorianCalendarDayOfMonth?: number = undefined; // only for displaying transaction in transaction list
     private _displayDayOfWeek?: WeekDay = undefined; // only for displaying transaction in transaction list
 
-    protected constructor(id: string, timeSequenceId: string, type: number, categoryId: string, time: number, timeZone: string | undefined, utcOffset: number, sourceAccountId: string, destinationAccountId: string, sourceAmount: number, destinationAmount: number, hideAmount: boolean, tagIds: string[], comment: string, editable: boolean) {
+    protected constructor(id: string, timeSequenceId: string, type: number, categoryId: string, time: number, timeZone: string | undefined, utcOffset: number, sourceAccountId: string, destinationAccountId: string, sourceAmount: number, destinationAmount: number, hideAmount: boolean, tagIds: string[], itemIds: string[], comment: string, editable: boolean) {
         this.id = id;
         this.timeSequenceId = timeSequenceId;
         this.type = type;
@@ -52,6 +55,7 @@ export class Transaction implements TransactionInfoResponse {
         this.destinationAmount = destinationAmount;
         this.hideAmount = hideAmount;
         this.tagIds = tagIds;
+        this.itemIds = itemIds;
         this.comment = comment;
         this.editable = editable;
         this.setCategoryId(categoryId);
@@ -104,6 +108,14 @@ export class Transaction implements TransactionInfoResponse {
         }
 
         return ret;
+    }
+
+    public set items(value: TransactionItemInfoResponse[] | undefined) {
+        this._items = value;
+    }
+
+    public get items(): TransactionItemInfoResponse[] | undefined {
+        return this._items;
     }
 
     public get gregorianCalendarYearDashMonthDashDay(): TextualYearMonthDay | undefined {
@@ -238,9 +250,9 @@ export class Transaction implements TransactionInfoResponse {
             destinationAmount: this.type === TransactionType.Transfer ? this.destinationAmount : 0,
             hideAmount: this.hideAmount,
             tagIds: this.tagIds,
+            itemIds: this.itemIds,
             pictureIds: this.getPictureIds(),
             comment: this.comment,
-            geoLocation: this.getNormalizedGeoLocation(),
             clientSessionId: clientSessionId
         };
     }
@@ -263,9 +275,9 @@ export class Transaction implements TransactionInfoResponse {
             destinationAmount: this.type === TransactionType.Transfer ? this.destinationAmount : 0,
             hideAmount: this.hideAmount,
             tagIds: this.tagIds,
+            itemIds: this.itemIds,
             pictureIds: this.getPictureIds(),
-            comment: this.comment,
-            geoLocation: this.getNormalizedGeoLocation()
+            comment: this.comment
         };
     }
 
@@ -285,6 +297,7 @@ export class Transaction implements TransactionInfoResponse {
             destinationAmount: this.type === TransactionType.Transfer ? this.destinationAmount : 0,
             hideAmount: this.hideAmount,
             tagIds: this.tagIds,
+            itemIds: this.itemIds,
             pictures: this.pictures,
             comment: this.comment,
         };
@@ -305,6 +318,7 @@ export class Transaction implements TransactionInfoResponse {
             0, // destinationAmount
             false, // hideAmount
             [], // tagIds
+            [], // itemIds
             '', // comment
             true // editable
         );
@@ -325,6 +339,7 @@ export class Transaction implements TransactionInfoResponse {
             transactionResponse.destinationAmount,
             transactionResponse.hideAmount,
             transactionResponse.tagIds,
+            transactionResponse.itemIds ?? [],
             transactionResponse.comment,
             transactionResponse.editable
         );
@@ -355,8 +370,8 @@ export class Transaction implements TransactionInfoResponse {
             transaction.setPictures(pictures);
         }
 
-        if (transactionResponse.geoLocation) {
-            transaction.setLatitudeAndLongitude(transactionResponse.geoLocation.latitude, transactionResponse.geoLocation.longitude);
+        if (transactionResponse.items) {
+            transaction.items = transactionResponse.items;
         }
 
         return transaction;
@@ -397,6 +412,7 @@ export class Transaction implements TransactionInfoResponse {
             transactionDraft.destinationAmount ?? 0, // destinationAmount
             transactionDraft.hideAmount ?? false, // hideAmount
             transactionDraft.tagIds ?? [], // tagIds
+            transactionDraft.itemIds ?? [], // itemIds
             transactionDraft.comment ?? '', // comment
             true // editable
         );
@@ -516,6 +532,7 @@ export interface TransactionDraft {
     readonly destinationAmount?: number;
     readonly hideAmount?: boolean;
     readonly tagIds?: string[];
+    readonly itemIds?: string[];
     readonly pictures?: TransactionPictureInfoBasicResponse[];
     readonly comment?: string;
 }
@@ -536,9 +553,9 @@ export interface TransactionCreateRequest {
     readonly destinationAmount: number;
     readonly hideAmount: boolean;
     readonly tagIds: string[];
+    readonly itemIds: string[];
     readonly pictureIds: string[];
     readonly comment: string;
-    readonly geoLocation?: TransactionGeoLocationRequest;
     readonly clientSessionId: string;
 }
 
@@ -553,9 +570,9 @@ export interface TransactionModifyRequest {
     readonly destinationAmount: number;
     readonly hideAmount: boolean;
     readonly tagIds: string[];
+    readonly itemIds: string[];
     readonly pictureIds: string[];
     readonly comment: string;
-    readonly geoLocation?: TransactionGeoLocationRequest;
 }
 
 export interface TransactionMoveBetweenAccountsRequest {
@@ -628,9 +645,10 @@ export interface TransactionInfoResponse {
     readonly hideAmount: boolean;
     readonly tagIds: string[];
     readonly tags?: TransactionTagInfoResponse[];
+    readonly itemIds?: string[];
+    readonly items?: TransactionItemInfoResponse[];
     readonly pictures?: TransactionPictureInfoBasicResponse[];
     readonly comment: string;
-    readonly geoLocation?: TransactionGeoLocationResponse;
     readonly editable: boolean;
 }
 
