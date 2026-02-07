@@ -58,6 +58,10 @@ func initializeSystem(c *core.CliContext) (*settings.Config, error) {
 		return nil, err
 	}
 
+	if !isDisableBootLog {
+		log.BootInfof(c, "[initializer.initializeSystem] config file: %s, transaction_from_ocr_image_recognition: %v", configFilePath, config.TransactionFromOCRImageRecognition)
+	}
+
 	if config.SecretKeyNoSet {
 		log.BootWarnf(c, "[initializer.initializeSystem] \"secret_key\" in config file is not set, please change it to keep your user data safe")
 	}
