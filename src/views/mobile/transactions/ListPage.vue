@@ -253,6 +253,16 @@
                                             </div>
                                         </div>
                                         <div class="item-footer">
+                                            <div class="transaction-items" v-if="transaction.itemIds && transaction.itemIds.length">
+                                                <f7-chip media-text-color="var(--f7-chip-text-color)" class="transaction-item"
+                                                         :text="allTransactionItemsMap[itemId]?.name"
+                                                         :key="itemId"
+                                                         v-for="itemId in transaction.itemIds">
+                                                    <template #media>
+                                                        <f7-icon f7="list_bullet"></f7-icon>
+                                                    </template>
+                                                </f7-chip>
+                                            </div>
                                             <div class="transaction-tags" v-if="showTagInTransactionListPage && transaction.tagIds && transaction.tagIds.length">
                                                 <f7-chip media-text-color="var(--f7-chip-text-color)" class="transaction-tag"
                                                          :text="allTransactionTags[tagId]?.name"
@@ -599,7 +609,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue';
+import { ref, computed, nextTick, onMounted, onUnmounted, unref } from 'vue';
 import type { Router } from 'framework7/types';
 
 import { useI18n } from '@/locales/helpers.ts';
@@ -620,6 +630,7 @@ import { useEnvironmentsStore } from '@/stores/environment.ts';
 import { useAccountsStore } from '@/stores/account.ts';
 import { useTransactionCategoriesStore } from '@/stores/transactionCategory.ts';
 import { useTransactionTagsStore } from '@/stores/transactionTag.ts';
+import { useTransactionItemsStore } from '@/stores/transactionItem.ts';
 import { type TransactionMonthList, useTransactionsStore } from '@/stores/transaction.ts';
 
 import { keys } from '@/core/base.ts';
@@ -732,7 +743,10 @@ const environmentsStore = useEnvironmentsStore();
 const accountsStore = useAccountsStore();
 const transactionCategoriesStore = useTransactionCategoriesStore();
 const transactionTagsStore = useTransactionTagsStore();
+const transactionItemsStore = useTransactionItemsStore();
 const transactionsStore = useTransactionsStore();
+
+const allTransactionItemsMap = computed(() => unref(transactionItemsStore.allTransactionItemsMap) ?? {});
 
 const loadingError = ref<unknown | null>(null);
 const loadingMore = ref<boolean>(false);

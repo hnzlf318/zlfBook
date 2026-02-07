@@ -266,6 +266,14 @@
                                         v-model="transaction.scheduledEndDate" />
                                 </v-col>
                                 <v-col cols="12" md="12">
+                                    <transaction-item-auto-complete
+                                        :readonly="mode === TransactionEditPageMode.View"
+                                        :disabled="loading || submitting"
+                                        :show-label="true"
+                                        v-model="transaction.itemIds"
+                                    />
+                                </v-col>
+                                <v-col cols="12" md="12">
                                     <transaction-tag-auto-complete
                                         :readonly="mode === TransactionEditPageMode.View"
                                         :disabled="loading || submitting"
@@ -273,14 +281,6 @@
                                         :allow-add-new-tag="true"
                                         v-model="transaction.tagIds"
                                         @tag:saving="onSavingTag"
-                                    />
-                                </v-col>
-                                <v-col cols="12" md="12">
-                                    <transaction-item-auto-complete
-                                        :readonly="mode === TransactionEditPageMode.View"
-                                        :disabled="loading || submitting"
-                                        :show-label="true"
-                                        v-model="transaction.itemIds"
                                     />
                                 </v-col>
                                 <v-col cols="12" md="12">

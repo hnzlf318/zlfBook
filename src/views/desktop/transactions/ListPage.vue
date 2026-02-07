@@ -427,6 +427,7 @@
                                                     </v-list>
                                                 </v-menu>
                                             </th>
+                                            <th class="transaction-table-column-items text-no-wrap">{{ tt('Transaction Items') }}</th>
                                             <th class="transaction-table-column-tags text-no-wrap" v-if="showTagInTransactionListPage">
                                                 <v-menu ref="tagFilterMenu" class="transaction-tag-menu"
                                                         eager location="bottom" max-height="500"
@@ -513,7 +514,7 @@
 
                                         <tbody v-if="loading && (!transactions || !transactions.length || transactions.length < 1)">
                                         <tr :key="itemIdx" v-for="itemIdx in skeletonData">
-                                            <td class="px-0" :colspan="showTagInTransactionListPage ? 6 : 5">
+                                            <td class="px-0" :colspan="showTagInTransactionListPage ? 7 : 6">
                                                 <v-skeleton-loader type="text" :loading="true"></v-skeleton-loader>
                                             </td>
                                         </tr>
@@ -521,7 +522,7 @@
 
                                         <tbody v-if="!loading && (!transactions || !transactions.length || transactions.length < 1)">
                                         <tr>
-                                            <td :colspan="showTagInTransactionListPage ? 6 : 5">{{ tt('No transaction data') }}</td>
+                                            <td :colspan="showTagInTransactionListPage ? 7 : 6">{{ tt('No transaction data') }}</td>
                                         </tr>
                                         </tbody>
 
@@ -530,7 +531,7 @@
                                                v-for="(transaction, idx) in transactions">
                                             <tr class="transaction-list-row-date no-hover text-sm"
                                                 v-if="pageType === TransactionListPageType.List.type && (idx === 0 || (idx > 0 && (transaction.gregorianCalendarYearDashMonthDashDay !== transactions[idx - 1]!.gregorianCalendarYearDashMonthDashDay)))">
-                                                <td :colspan="showTagInTransactionListPage ? 6 : 5" class="font-weight-bold">
+                                                <td :colspan="showTagInTransactionListPage ? 7 : 6" class="font-weight-bold">
                                                     <div class="d-flex align-center">
                                                         <span>{{ getDisplayLongDate(transaction) }}</span>
                                                         <v-chip class="ms-1" color="default" size="x-small"
@@ -578,6 +579,15 @@
                                                         <v-icon class="icon-with-direction mx-1" size="13" :icon="mdiArrowRight" v-if="transaction.sourceAccount && transaction.type === TransactionType.Transfer && transaction.destinationAccount && transaction.sourceAccount.id !== transaction.destinationAccount.id"></v-icon>
                                                         <span v-if="transaction.sourceAccount && transaction.type === TransactionType.Transfer && transaction.destinationAccount && transaction.sourceAccount.id !== transaction.destinationAccount.id">{{ transaction.destinationAccount.name }}</span>
                                                     </div>
+                                                </td>
+                                                <td class="transaction-table-column-items">
+                                                    <v-chip class="transaction-tag" size="small" :prepend-icon="mdiListBullet"
+                                                            :text="allTransactionItemsMap[itemId]?.name"
+                                                            :key="itemId"
+                                                            v-for="itemId in (transaction.itemIds || [])"/>
+                                                    <v-chip class="transaction-tag" size="small"
+                                                            :text="tt('None')"
+                                                            v-if="!transaction.itemIds || !transaction.itemIds.length"/>
                                                 </td>
                                                 <td class="transaction-table-column-tags" v-if="showTagInTransactionListPage">
                                                     <v-chip class="transaction-tag" size="small" :prepend-icon="mdiPound"
@@ -657,7 +667,7 @@ import CategoryFilterSettingsCard from '@/views/desktop/common/cards/CategoryFil
 import TransactionTagFilterSettingsCard from '@/views/desktop/common/cards/TransactionTagFilterSettingsCard.vue';
 import { TransactionEditPageType } from '@/views/base/transactions/TransactionEditPageBase.ts';
 
-import { ref, computed, useTemplateRef, watch, nextTick } from 'vue';
+import { ref, computed, useTemplateRef, watch, nextTick, unref } from 'vue';
 import { useRouter, onBeforeRouteUpdate } from 'vue-router';
 import { useDisplay, useTheme } from 'vuetify';
 
@@ -669,6 +679,7 @@ import { useUserStore } from '@/stores/user.ts';
 import { useAccountsStore } from '@/stores/account.ts';
 import { useTransactionCategoriesStore } from '@/stores/transactionCategory.ts';
 import { useTransactionTagsStore } from '@/stores/transactionTag.ts';
+import { useTransactionItemsStore } from '@/stores/transactionItem.ts';
 import { useTransactionsStore } from '@/stores/transaction.ts';
 import { useTransactionTemplatesStore } from '@/stores/transactionTemplate.ts';
 import { useDesktopPageStore } from '@/stores/desktopPage.ts';
@@ -737,6 +748,7 @@ import {
     mdiArrowLeft,
     mdiArrowRight,
     mdiPound,
+    mdiListBullet,
     mdiMagicStaff,
     mdiTextBoxOutline
 } from '@mdi/js';
@@ -770,6 +782,9 @@ interface TransactionListDisplayTotalAmount {
 const router = useRouter();
 const display = useDisplay();
 const theme = useTheme();
+
+const transactionItemsStore = useTransactionItemsStore();
+const allTransactionItemsMap = computed(() => unref(transactionItemsStore.allTransactionItemsMap) ?? {});
 
 const {
     tt,

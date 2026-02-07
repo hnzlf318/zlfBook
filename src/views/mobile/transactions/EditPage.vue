@@ -304,35 +304,6 @@
             <f7-list-item
                 link="#" no-chevron
                 :class="{ 'readonly': mode === TransactionEditPageMode.View }"
-                :header="tt('Tags')"
-                @click="showTransactionTagSheet = true"
-            >
-                <transaction-tag-selection-sheet :allow-add-new-tag="true" :enable-filter="true"
-                                                 v-model:show="showTransactionTagSheet"
-                                                 v-model="transaction.tagIds">
-                </transaction-tag-selection-sheet>
-
-                <template #footer>
-                    <f7-block class="margin-top-half no-padding no-margin" v-if="transaction.tagIds && transaction.tagIds.length">
-                        <f7-chip media-text-color="var(--f7-chip-text-color)" class="transaction-edit-tag"
-                                 :text="allTagsMap[tagId]?.name ?? ''"
-                                 :key="tagId"
-                                 v-for="tagId in transaction.tagIds">
-                            <template #media>
-                                <f7-icon f7="number"></f7-icon>
-                            </template>
-                        </f7-chip>
-                    </f7-block>
-                    <f7-block class="margin-top-half no-padding no-margin" v-else-if="!transaction.tagIds || !transaction.tagIds.length">
-                        <f7-chip class="transaction-edit-tag" :text="tt('None')">
-                        </f7-chip>
-                    </f7-block>
-                </template>
-            </f7-list-item>
-
-            <f7-list-item
-                link="#" no-chevron
-                :class="{ 'readonly': mode === TransactionEditPageMode.View }"
                 :header="tt('Transaction Items')"
                 @click="showTransactionItemSheet = true"
             >
@@ -354,6 +325,35 @@
                     </f7-block>
                     <f7-block class="margin-top-half no-padding no-margin" v-else-if="!transaction.itemIds || !transaction.itemIds.length">
                         <f7-chip class="transaction-edit-item" :text="tt('None')">
+                        </f7-chip>
+                    </f7-block>
+                </template>
+            </f7-list-item>
+
+            <f7-list-item
+                link="#" no-chevron
+                :class="{ 'readonly': mode === TransactionEditPageMode.View }"
+                :header="tt('Tags')"
+                @click="showTransactionTagSheet = true"
+            >
+                <transaction-tag-selection-sheet :allow-add-new-tag="true" :enable-filter="true"
+                                                 v-model:show="showTransactionTagSheet"
+                                                 v-model="transaction.tagIds">
+                </transaction-tag-selection-sheet>
+
+                <template #footer>
+                    <f7-block class="margin-top-half no-padding no-margin" v-if="transaction.tagIds && transaction.tagIds.length">
+                        <f7-chip media-text-color="var(--f7-chip-text-color)" class="transaction-edit-tag"
+                                 :text="allTagsMap[tagId]?.name ?? ''"
+                                 :key="tagId"
+                                 v-for="tagId in transaction.tagIds">
+                            <template #media>
+                                <f7-icon f7="number"></f7-icon>
+                            </template>
+                        </f7-chip>
+                    </f7-block>
+                    <f7-block class="margin-top-half no-padding no-margin" v-else-if="!transaction.tagIds || !transaction.tagIds.length">
+                        <f7-chip class="transaction-edit-tag" :text="tt('None')">
                         </f7-chip>
                     </f7-block>
                 </template>
