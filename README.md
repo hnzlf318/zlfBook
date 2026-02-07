@@ -105,6 +105,19 @@ or
 
 All the files will be packaged in `ezbookkeeping.zip`.
 
+### Build Windows binary via GitHub Actions
+
+仓库内提供了 Windows 自编译工作流，可在 GitHub 上自动构建 Windows 可执行包：
+
+- **触发方式**
+  - 推送 tag（如 `v1.0.1`）时自动运行，并创建 Release、附带 Windows zip。
+  - 在 Actions 页选择 **Windows Build** 工作流，点击 **Run workflow** 可手动触发。
+- **产物**
+  - 每次运行会生成 `ezbookkeeping-<version>-windows.zip`（或带日期的 snapshot 包），可在该次运行的 **Artifacts** 中下载。
+  - 包内包含 `ezbookkeeping.exe`、前端静态资源、配置与模板，解压后在 Windows 下运行 `ezbookkeeping.exe server run` 即可。
+
+工作流文件：`.github/workflows/windows-build.yml`。
+
 You can also build a Docker image. Make sure you have [Docker](https://www.docker.com/) installed, then follow these steps:
 
 **Linux**

@@ -1,0 +1,131 @@
+# 在 Windows 下编译 ezBookkeeping 二进制并打包为可发布的 zip
+# 产物：ezbookkeeping-<version>-windows.zip（含 exe + 前端 + 配置）
+name: Windows Build
+
+on:
+  push:
+    tags:
+      - v*
+  workflow_dispatch:
+
+env:
+  GO_VERSION: "1.24"
+  NODE_VERSION: "22"
+
+jobs:
+  windows:
+    name: Build Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up MSYS2 and MinGW GCC
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          install: mingw-w64-ucrt-x86_64-gcc
+          update: true
+
+      - name: Add MinGW to PATH (PowerShell)
+        shell: pwsh
+        run: |
+          $env:PATH = "C:\msys64\ucrt64\bin;$env:PATH"
+          gcc --version
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: go.sum
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install 7-Zip
+        shell: pwsh
+        run: |
+          choco install 7zip -y
+          $env:PATH = "C:\Program Files\7-Zip;$env:PATH"
+          7z
+
+      - name: Build parameters
+        id: params
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          $isTag = "${{ github.ref_type }}" -eq "tag"
+          echo "VERSION=$version" >> $env:GITHUB_ENV
+          echo "IS_RELEASE=$isTag" >> $env:GITHUB_ENV
+          if ($isTag) { echo "RELEASE_BUILD=1" >> $env:GITHUB_ENV } else { echo "RELEASE_BUILD=0" >> $env:GITHUB_ENV }
+
+      # Go 使用 CGO（如 sqlite3），需 MinGW GCC。若出现 link 错误，可去掉 -linkmode external -extldflags '-static'
+      - name: Build backend (Go)
+        shell: pwsh
+        env:
+          CGO_ENABLED: 1
+          RELEASE_BUILD: ${{ env.RELEASE_BUILD }}
+          SKIP_TESTS: ${{ vars.SKIP_TESTS }}
+        run: |
+          $env:PATH = "C:\msys64\ucrt64\bin;$env:PATH"
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          $commit = git rev-parse --short=7 HEAD
+          $unixtime = [int][double]::Parse((Get-Date -UFormat %s))
+          $ldflags = "-w -s -linkmode external -extldflags '-static' -X main.Version=$version -X main.CommitHash=$commit"
+          if ($env:RELEASE_BUILD -ne "1") { $ldflags += " -X main.BuildUnixTime=$unixtime" }
+          go get .
+          go build -a -v -trimpath -tags timetzdata -ldflags $ldflags -o ezbookkeeping.exe ezbookkeeping.go
+
+      - name: Build frontend (Vue)
+        shell: pwsh
+        env:
+          NODE_ENV: production
+        run: |
+          npm ci
+          if ($env:RELEASE_BUILD -ne "1") {
+            $env:buildUnixTime = [int][double]::Parse((Get-Date -UFormat %s))
+          }
+          npm run build
+
+      - name: Create package directory
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path package -Force
+          New-Item -ItemType Directory -Path package\data, package\storage, package\log -Force
+          Copy-Item ezbookkeeping.exe package\
+          Copy-Item dist package\public -Recurse
+          Copy-Item conf package\conf -Recurse
+          Copy-Item templates package\templates -Recurse
+          Copy-Item LICENSE package\
+
+      - name: Create zip archive
+        shell: pwsh
+        run: |
+          $version = $env:VERSION
+          $date = Get-Date -Format "yyyyMMdd"
+          $suffix = if ($env:RELEASE_BUILD -eq "1") { "" } else { "-$date" }
+          $zipName = "ezbookkeeping-$version$suffix-windows.zip"
+          echo "ZIP_NAME=$zipName" >> $env:GITHUB_ENV
+          Push-Location package
+          & "C:\Program Files\7-Zip\7z.exe" a -r -tzip -mx9 "..\$zipName" *
+          Pop-Location
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ezbookkeeping-windows-${{ env.VERSION }}
+          path: ${{ env.ZIP_NAME }}
+
+      - name: Create Release (on tag only)
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ZIP_NAME }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
