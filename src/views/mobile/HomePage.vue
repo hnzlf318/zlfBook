@@ -188,13 +188,6 @@
         <f7-popover class="template-popover-menu" target-el="#homepage-add-button"
                     v-model:opened="showTransactionTemplatePopover">
             <f7-list dividers v-if="allTransactionTemplates">
-                <f7-list-item key="AIImageRecognition" :title="tt('AI Image Recognition')"
-                              @click="showAIReceiptImageRecognitionSheet = true; showTransactionTemplatePopover = false"
-                              v-if="isTransactionFromAIImageRecognitionEnabled()">
-                    <template #media>
-                        <f7-icon f7="wand_stars"></f7-icon>
-                    </template>
-                </f7-list-item>
                 <f7-list-item :key="template.id" :title="template.name"
                               :link="'/transaction/add?templateId=' + template.id"
                               v-for="template in allTransactionTemplates">
@@ -204,9 +197,6 @@
                 </f7-list-item>
             </f7-list>
         </f7-popover>
-
-        <a-i-image-recognition-sheet v-model:show="showAIReceiptImageRecognitionSheet"
-                                     @recognition:change="onReceiptRecognitionChanged"/>
     </f7-page>
 </template>
 
@@ -226,10 +216,8 @@ import { useOverviewStore } from '@/stores/overview.ts';
 import { DateRange } from '@/core/datetime.ts';
 import { TemplateType } from '@/core/template.ts';
 import { TransactionTemplate } from '@/models/transaction_template.ts';
-import type { RecognizedReceiptImageResponse } from '@/models/large_language_model.ts';
 
 import { isUserLogined, isUserUnlocked } from '@/lib/userstate.ts';
-import { isTransactionFromAIImageRecognitionEnabled } from '@/lib/server_settings.ts';
 
 const props = defineProps<{
     f7router: Router.Router;
@@ -253,7 +241,6 @@ const overviewStore = useOverviewStore();
 
 const loading = ref<boolean>(true);
 const showTransactionTemplatePopover = ref<boolean>(false);
-const showAIReceiptImageRecognitionSheet = ref<boolean>(false);
 
 const allTransactionTemplates = computed<TransactionTemplate[]>(() => {
     const allTemplates = transactionTemplatesStore.allVisibleTemplates;
@@ -261,7 +248,7 @@ const allTransactionTemplates = computed<TransactionTemplate[]>(() => {
 });
 
 function openTransactionTemplatePopover(): void {
-    if (isTransactionFromAIImageRecognitionEnabled() || (allTransactionTemplates.value && allTransactionTemplates.value.length)) {
+    if (allTransactionTemplates.value && allTransactionTemplates.value.length) {
         showTransactionTemplatePopover.value = true;
     }
 }
@@ -307,50 +294,6 @@ function reload(done?: () => void): void {
             showToast(error.message || error);
         }
     });
-}
-
-function onReceiptRecognitionChanged(result: RecognizedReceiptImageResponse): void {
-    const params: string[] = [];
-
-    if (result.type) {
-        params.push(`type=${result.type}`);
-    }
-
-    if (result.time) {
-        params.push(`time=${result.time}`);
-    }
-
-    if (result.categoryId) {
-        params.push(`categoryId=${result.categoryId}`);
-    }
-
-    if (result.sourceAccountId) {
-        params.push(`accountId=${result.sourceAccountId}`);
-    }
-
-    if (result.destinationAccountId) {
-        params.push(`destinationAccountId=${result.destinationAccountId}`);
-    }
-
-    if (result.sourceAmount) {
-        params.push(`amount=${result.sourceAmount}`);
-    }
-
-    if (result.destinationAmount) {
-        params.push(`destinationAmount=${result.destinationAmount}`);
-    }
-
-    if (result.tagIds) {
-        params.push(`tagIds=${result.tagIds.join(',')}`);
-    }
-
-    if (result.comment) {
-        params.push(`comment=${encodeURIComponent(result.comment)}`);
-    }
-
-    params.push(`noTransactionDraft=true`);
-
-    props.f7router.navigate(`/transaction/add?${params.join('&')}`);
 }
 
 function onPageAfterIn(): void {

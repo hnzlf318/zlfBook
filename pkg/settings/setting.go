@@ -340,6 +340,9 @@ type Config struct {
 	TransactionFromOCRImageRecognition bool
 	MaxAIRecognitionPictureFileSize   uint32
 
+	// OCR via external PaddleOCR HTTP service (for bill / transaction list screenshots)
+	// The endpoint should accept multipart/form-data "image" and return JSON with at least { "success": true, "text": "..." }.
+	PaddleBillOCREndpoint string
 	// Large Language Model for Receipt Image Recognition
 	ReceiptImageRecognitionLLMConfig *LLMConfig
 
@@ -863,6 +866,10 @@ func loadLLMGlobalConfiguration(config *Config, configFile *ini.File, sectionNam
 	config.TransactionFromAIImageRecognition = getConfigItemBoolValue(configFile, sectionName, "transaction_from_ai_image_recognition", false)
 	config.TransactionFromOCRImageRecognition = getConfigItemBoolValue(configFile, sectionName, "transaction_from_ocr_image_recognition", false)
 	config.MaxAIRecognitionPictureFileSize = getConfigItemUint32Value(configFile, sectionName, "max_ai_recognition_picture_size", defaultAIRecognitionPictureMaxSize)
+
+	// Optional: external PaddleOCR HTTP endpoint for bill / transaction list screenshots.
+	// Example: http://127.0.0.1:8866/api/ocr/bill
+	config.PaddleBillOCREndpoint = getConfigItemStringValue(configFile, sectionName, "paddle_bill_ocr_endpoint")
 
 	return nil
 }

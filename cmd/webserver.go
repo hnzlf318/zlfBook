@@ -473,12 +473,7 @@ func startWebServer(c *core.CliContext) error {
 			apiV1Route.POST("/insights/explorers/move.json", bindApi(api.InsightsExplorers.InsightsExplorerMoveHandler))
 			apiV1Route.POST("/insights/explorers/delete.json", bindApi(api.InsightsExplorers.InsightsExplorerDeleteHandler))
 
-			// Large Language Models
-			if config.ReceiptImageRecognitionLLMConfig != nil && config.ReceiptImageRecognitionLLMConfig.LLMProvider != "" {
-				if config.TransactionFromAIImageRecognition {
-					apiV1Route.POST("/llm/transactions/recognize_receipt_image.json", bindApi(api.LargeLanguageModels.RecognizeReceiptImageHandler))
-				}
-			}
+			// Large Language Models (only OCR bill recognition is kept; AI image recognition has been removed)
 			if config.TransactionFromOCRImageRecognition {
 				apiV1Route.POST("/llm/transactions/recognize_receipt_image_ocr.json", bindApi(api.LargeLanguageModels.RecognizeReceiptImageByOCRHandler))
 			}

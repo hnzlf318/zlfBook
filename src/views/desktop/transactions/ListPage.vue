@@ -71,11 +71,6 @@
                                                                      :title="tt('Add')"
                                                                      :prepend-icon="mdiPlusCircle"
                                                                      @click="add()"></v-list-item>
-                                                        <v-list-item key="AIImageRecognition"
-                                                                     :title="tt('AI Image Recognition')"
-                                                                     :prepend-icon="mdiMagicStaff"
-                                                                     v-if="isTransactionFromAIImageRecognitionEnabled()"
-                                                                     @click="addByRecognizingImage"></v-list-item>
                                                         <v-list-item key="OCRBillRecognition"
                                                                      :title="tt('OCR Bill Recognition')"
                                                                      :prepend-icon="mdiFileDocumentOutline"
@@ -672,7 +667,6 @@ import PaginationButtons from '@/components/desktop/PaginationButtons.vue';
 import ConfirmDialog from '@/components/desktop/ConfirmDialog.vue';
 import SnackBar from '@/components/desktop/SnackBar.vue';
 import EditDialog from './list/dialogs/EditDialog.vue';
-import AIImageRecognitionDialog from './list/dialogs/AIImageRecognitionDialog.vue';
 import OCRBillRecognitionDialog from './list/dialogs/OCRBillRecognitionDialog.vue';
 import ImportDialog from './import/ImportDialog.vue';
 import AccountFilterSettingsCard from '@/views/desktop/common/cards/AccountFilterSettingsCard.vue';
@@ -743,7 +737,7 @@ import {
     categoryTypeToTransactionType,
     transactionTypeToCategoryType
 } from '@/lib/category.ts';
-import { isDataExportingEnabled, isDataImportingEnabled, isTransactionFromAIImageRecognitionEnabled, isTransactionFromOCRImageRecognitionEnabled } from '@/lib/server_settings.ts';
+import { isDataExportingEnabled, isDataImportingEnabled, isTransactionFromOCRImageRecognitionEnabled } from '@/lib/server_settings.ts';
 import { scrollToSelectedItem, startDownloadFile } from '@/lib/ui/common.ts';
 import logger from '@/lib/logger.ts';
 
@@ -762,7 +756,6 @@ import {
     mdiArrowRight,
     mdiPound,
     mdiFormatListBulleted,
-    mdiMagicStaff,
     mdiFileDocumentOutline,
     mdiTextBoxOutline,
     mdiPlusCircle
@@ -786,7 +779,6 @@ const props = defineProps<TransactionListProps>();
 type ConfirmDialogType = InstanceType<typeof ConfirmDialog>;
 type SnackBarType = InstanceType<typeof SnackBar>;
 type EditDialogType = InstanceType<typeof EditDialog>;
-type AIImageRecognitionDialogType = InstanceType<typeof AIImageRecognitionDialog>;
 type OCRBillRecognitionDialogType = InstanceType<typeof OCRBillRecognitionDialog>;
 type ImportDialogType = InstanceType<typeof ImportDialog>;
 
@@ -872,7 +864,6 @@ const transactionTemplatesStore = useTransactionTemplatesStore();
 const desktopPageStore = useDesktopPageStore();
 
 const hasAddTransactionMenu = computed<boolean>(() =>
-    isTransactionFromAIImageRecognitionEnabled() ||
     isTransactionFromOCRImageRecognitionEnabled() ||
     !!(allTransactionTemplates.value && allTransactionTemplates.value.length));
 
@@ -892,7 +883,6 @@ const tagFilterMenu = useTemplateRef<VMenu>('tagFilterMenu');
 const confirmDialog = useTemplateRef<ConfirmDialogType>('confirmDialog');
 const snackbar = useTemplateRef<SnackBarType>('snackbar');
 const editDialog = useTemplateRef<EditDialogType>('editDialog');
-const aiImageRecognitionDialog = useTemplateRef<AIImageRecognitionDialogType>('aiImageRecognitionDialog');
 const ocrBillRecognitionDialog = useTemplateRef<OCRBillRecognitionDialogType>('ocrBillRecognitionDialog');
 const importDialog = useTemplateRef<ImportDialogType>('importDialog');
 
@@ -1607,33 +1597,6 @@ function add(template?: TransactionTemplate): void {
         if (error) {
             snackbar.value?.showError(error);
         }
-    });
-}
-
-function addByRecognizingImage(): void {
-    aiImageRecognitionDialog.value?.open().then(result => {
-        editDialog.value?.open({
-            time: result.time,
-            type: result.type,
-            categoryId: result.categoryId,
-            accountId: result.sourceAccountId,
-            destinationAccountId: result.destinationAccountId,
-            amount: result.sourceAmount,
-            destinationAmount: result.destinationAmount,
-            tagIds: result.tagIds ? result.tagIds.join(',') : undefined,
-            comment: result.comment,
-            noTransactionDraft: true
-        }).then(result => {
-            if (result && result.message) {
-                snackbar.value?.showMessage(result.message);
-            }
-
-            reload(false, false);
-        }).catch(error => {
-            if (error) {
-                snackbar.value?.showError(error);
-            }
-        });
     });
 }
 

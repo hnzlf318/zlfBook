@@ -1231,35 +1231,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
         });
     }
 
-    function recognizeReceiptImage({ imageFile, cancelableUuid }: { imageFile: File, cancelableUuid?: string }): Promise<RecognizedReceiptImageResponse> {
-        return new Promise((resolve, reject) => {
-            services.recognizeReceiptImage({ imageFile, cancelableUuid }).then(response => {
-                const data = response.data;
-
-                if (!data || !data.success || !data.result) {
-                    reject({ message: 'Unable to recognize image' });
-                    return;
-                }
-
-                resolve(data.result);
-            }).catch(error => {
-                if (error.canceled) {
-                    reject(error);
-                }
-
-                logger.error('failed to recognize image', error);
-
-                if (error.response && error.response.data && error.response.data.errorMessage) {
-                    reject({ error: error.response.data });
-                } else if (!error.processed) {
-                    reject({ message: 'Unable to recognize image' });
-                } else {
-                    reject(error);
-                }
-            });
-        });
-    }
-
     function recognizeReceiptImageByOCR(imageFile: File): Promise<RecognizedReceiptImageResponse[]> {
         return new Promise((resolve, reject) => {
             services.recognizeReceiptImageByOCR(imageFile).then(response => {
@@ -1283,10 +1254,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
                 }
             });
         });
-    }
-
-    function cancelRecognizeReceiptImage(cancelableUuid: string): void {
-        services.cancelRequest(cancelableUuid);
     }
 
     function parseImportDsvFile({ fileType, fileEncoding, importFile }: { fileType: string, fileEncoding?: string, importFile: File }): Promise<string[][]> {
@@ -1503,9 +1470,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
         saveTransaction,
         moveAllTransactionsBetweenAccounts,
         deleteTransaction,
-        recognizeReceiptImage,
         recognizeReceiptImageByOCR,
-        cancelRecognizeReceiptImage,
         parseImportDsvFile,
         parseImportTransaction,
         importTransactions,

@@ -2,64 +2,86 @@ package ocr
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
-	"os"
-	"os/exec"
-	"path/filepath"
+	"mime/multipart"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mayswind/ezbookkeeping/pkg/log"
 )
 
-const (
-	// TesseractLangChineseSimplified and English for bill/screenshot text
-	TesseractLangBill = "chi_sim+eng"
-)
+// PaddleBillOCRResponse represents the response body of the PaddleOCR HTTP service.
+// This is intentionally simple: the service should at least return { "success": true, "text": "..." }.
+type PaddleBillOCRResponse struct {
+	Success bool   `json:"success"`
+	Text    string `json:"text"`
+	Error   string `json:"error,omitempty"`
+}
 
-// RunTesseract runs tesseract OCR on image data and returns recognized text.
-// Requires tesseract to be installed (e.g. apt install tesseract-ocr tesseract-ocr-chi-sim).
-// If tesseract is not available, returns an error that can be checked with errs.IsTesseractNotAvailable.
-func RunTesseract(imageData []byte, lang string) (string, error) {
+// RunPaddleBillOCR sends the image data to an external PaddleOCR HTTP service and returns the recognized text.
+// The external service is responsible for doing OCR and returning a JSON body like:
+//
+//   {
+//     "success": true,
+//     "text": "2月7日 21:49 京东超市 -100.00\n2月7日 22:10 余额宝收益 +5.23\n"
+//   }
+//
+// Only the "text" field is used by ezBookkeeping; it will be parsed by ParseBillListText to generate transactions.
+func RunPaddleBillOCR(imageData []byte, endpoint string) (string, error) {
 	if len(imageData) == 0 {
 		return "", fmt.Errorf("image data is empty")
 	}
-	if lang == "" {
-		lang = TesseractLangBill
+	if endpoint == "" {
+		return "", fmt.Errorf("paddle ocr endpoint is not configured")
 	}
 
-	// Determine image extension from content or default to png
-	ext := getImageExtension(imageData)
-	tmpDir := os.TempDir()
-	inputPath := filepath.Join(tmpDir, "ezbk_ocr_in"+ext)
-	outputBase := filepath.Join(tmpDir, "ezbk_ocr_out")
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
 
-	if err := os.WriteFile(inputPath, imageData, 0600); err != nil {
-		return "", fmt.Errorf("write temp image: %w", err)
-	}
-	defer os.Remove(inputPath)
-	defer os.Remove(outputBase + ".txt")
-
-	cmd := exec.Command("tesseract", inputPath, outputBase, "-l", lang)
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		log.Warnf(nil, "[ocr.RunTesseract] tesseract failed: %v, stderr: %s", err, stderr.String())
-		return "", fmt.Errorf("tesseract: %w (is tesseract installed? e.g. tesseract-ocr, tesseract-ocr-chi-sim)", err)
-	}
-
-	out, err := os.ReadFile(outputBase + ".txt")
+	part, err := writer.CreateFormFile("image", "bill.jpg")
 	if err != nil {
-		return "", fmt.Errorf("read tesseract output: %w", err)
+		return "", fmt.Errorf("create form file: %w", err)
 	}
-	return strings.TrimSpace(string(out)), nil
-}
 
-func getImageExtension(data []byte) string {
-	if len(data) >= 3 && data[0] == 0xFF && data[1] == 0xD8 {
-		return ".jpg"
+	if _, err := part.Write(imageData); err != nil {
+		return "", fmt.Errorf("write image data: %w", err)
 	}
-	if len(data) >= 8 && bytes.Equal(data[0:8], []byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}) {
-		return ".png"
+
+	if err := writer.Close(); err != nil {
+		return "", fmt.Errorf("close multipart writer: %w", err)
 	}
-	return ".png"
+
+	req, err := http.NewRequest(http.MethodPost, endpoint, &body)
+	if err != nil {
+		return "", fmt.Errorf("create http request: %w", err)
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Warnf(nil, "[ocr.RunPaddleBillOCR] request paddle ocr endpoint failed: %v", err)
+		return "", fmt.Errorf("request paddle ocr endpoint failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var ocrResp PaddleBillOCRResponse
+	if err := json.NewDecoder(resp.Body).Decode(&ocrResp); err != nil {
+		log.Warnf(nil, "[ocr.RunPaddleBillOCR] decode paddle ocr response failed: %v", err)
+		return "", fmt.Errorf("decode paddle ocr response failed: %w", err)
+	}
+
+	if !ocrResp.Success {
+		if ocrResp.Error != "" {
+			return "", fmt.Errorf("paddle ocr failed: %s", ocrResp.Error)
+		}
+		return "", fmt.Errorf("paddle ocr failed without error message")
+	}
+
+	return strings.TrimSpace(ocrResp.Text), nil
 }

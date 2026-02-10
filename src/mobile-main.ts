@@ -80,7 +80,6 @@ import TransactionTagSelectionSheet from '@/components/mobile/TransactionTagSele
 import TransactionItemSelectionSheet from '@/components/mobile/TransactionItemSelectionSheet.vue';
 import ScheduleFrequencySheet from '@/components/mobile/ScheduleFrequencySheet.vue';
 import AccountBalanceTrendsBarChart from '@/components/mobile/AccountBalanceTrendsBarChart.vue';
-import AIImageRecognitionSheet from '@/components/mobile/AIImageRecognitionSheet.vue';
 
 import TextareaAutoSize from '@/directives/mobile/textareaAutoSize.ts';
 
@@ -175,7 +174,6 @@ app.component('TransactionTagSelectionSheet', TransactionTagSelectionSheet);
 app.component('TransactionItemSelectionSheet', TransactionItemSelectionSheet);
 app.component('ScheduleFrequencySheet', ScheduleFrequencySheet);
 app.component('AccountBalanceTrendsBarChart', AccountBalanceTrendsBarChart);
-app.component('AIImageRecognitionSheet', AIImageRecognitionSheet);
 
 app.directive('TextareaAutoSize', TextareaAutoSize);
 
