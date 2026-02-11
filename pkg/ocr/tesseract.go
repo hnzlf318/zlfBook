@@ -6,35 +6,54 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/mayswind/ezbookkeeping/pkg/log"
 )
 
-// PaddleBillOCRResponse represents the response body of the PaddleOCR HTTP service.
-// This is intentionally simple: the service should at least return { "success": true, "text": "..." }.
-type PaddleBillOCRResponse struct {
-	Success bool   `json:"success"`
-	Text    string `json:"text"`
-	Error   string `json:"error,omitempty"`
+// PaddleBillOCRRawItem represents one raw recognized transaction item returned by PaddleOCR HTTP service.
+// It matches the JSON structure provided by the external Paddle service.
+type PaddleBillOCRRawItem struct {
+	Amount   string `json:"amount"`
+	Classify string `json:"classify"`
+	Account  string `json:"account"`
+	Date     string `json:"date"`
+	Project  string `json:"project"`
+	Label    string `json:"label"`
+	Text     string `json:"text"`
 }
 
-// RunPaddleBillOCR sends the image data to an external PaddleOCR HTTP service and returns the recognized text.
-// The external service is responsible for doing OCR and returning a JSON body like:
+// PaddleBillOCRResponse represents the response body of the PaddleOCR HTTP service.
+// Expected JSON structure:
 //
-//   {
-//     "success": true,
-//     "text": "2月7日 21:49 京东超市 -100.00\n2月7日 22:10 余额宝收益 +5.23\n"
-//   }
-//
-// Only the "text" field is used by ezBookkeeping; it will be parsed by ParseBillListText to generate transactions.
-func RunPaddleBillOCR(imageData []byte, endpoint string) (string, error) {
+//	{
+//	  "success": true,
+//	  "raw": [
+//	    {
+//	      "amount": "-123.45",
+//	      "classify": "食品饮料-食品",
+//	      "account": "微信",
+//	      "date": "2026-02-11 22:31:24",
+//	      "project": "项目1",
+//	      "label": "标签1",
+//	      "text": "2月7日 21:49 京东超市 -100.00"
+//	    }
+//	  ]
+//	}
+type PaddleBillOCRResponse struct {
+	Success bool                 `json:"success"`
+	Raw     []PaddleBillOCRRawItem `json:"raw"`
+	Error   string               `json:"error,omitempty"`
+}
+
+// RunPaddleBillOCR sends the image data to an external PaddleOCR HTTP service and returns the raw recognized items.
+// The external service is responsible for doing OCR and returning a JSON body like the structure documented above.
+func RunPaddleBillOCR(imageData []byte, endpoint string) ([]PaddleBillOCRRawItem, error) {
 	if len(imageData) == 0 {
-		return "", fmt.Errorf("image data is empty")
+		return nil, fmt.Errorf("image data is empty")
 	}
 	if endpoint == "" {
-		return "", fmt.Errorf("paddle ocr endpoint is not configured")
+		return nil, fmt.Errorf("paddle ocr endpoint is not configured")
 	}
 
 	var body bytes.Buffer
@@ -66,22 +85,26 @@ func RunPaddleBillOCR(imageData []byte, endpoint string) (string, error) {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Warnf(nil, "[ocr.RunPaddleBillOCR] request paddle ocr endpoint failed: %v", err)
-		return "", fmt.Errorf("request paddle ocr endpoint failed: %w", err)
+		return nil, fmt.Errorf("request paddle ocr endpoint failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	var ocrResp PaddleBillOCRResponse
 	if err := json.NewDecoder(resp.Body).Decode(&ocrResp); err != nil {
 		log.Warnf(nil, "[ocr.RunPaddleBillOCR] decode paddle ocr response failed: %v", err)
-		return "", fmt.Errorf("decode paddle ocr response failed: %w", err)
+		return nil, fmt.Errorf("decode paddle ocr response failed: %w", err)
 	}
 
 	if !ocrResp.Success {
 		if ocrResp.Error != "" {
-			return "", fmt.Errorf("paddle ocr failed: %s", ocrResp.Error)
+			return nil, fmt.Errorf("paddle ocr failed: %s", ocrResp.Error)
 		}
-		return "", fmt.Errorf("paddle ocr failed without error message")
+		return nil, fmt.Errorf("paddle ocr failed without error message")
 	}
 
-	return strings.TrimSpace(ocrResp.Text), nil
+	if len(ocrResp.Raw) == 0 {
+		return nil, fmt.Errorf("paddle ocr returned no raw items")
+	}
+
+	return ocrResp.Raw, nil
 }

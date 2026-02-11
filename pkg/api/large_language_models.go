@@ -2,6 +2,7 @@ package api
 
 import (
 	"io"
+	"strings"
 	"time"
 
 	"github.com/mayswind/ezbookkeeping/pkg/core"
@@ -106,14 +107,74 @@ func (a *LargeLanguageModelsApi) RecognizeReceiptImageByOCRHandler(c *core.WebCo
 		return nil, errs.ErrOperationFailed
 	}
 
-	ocrText, err := ocr.RunPaddleBillOCR(imageData, a.CurrentConfig().PaddleBillOCREndpoint)
+	rawItems, err := ocr.RunPaddleBillOCR(imageData, a.CurrentConfig().PaddleBillOCREndpoint)
 	if err != nil {
 		log.Warnf(c, "[large_language_models.RecognizeReceiptImageByOCRHandler] OCR failed for user \"uid:%d\", because %s", uid, err.Error())
 		return nil, errs.ErrOperationFailed
 	}
 
+	if len(rawItems) == 0 {
+		return nil, errs.ErrNoTransactionInformationInImage
+	}
+
 	refTime := time.Now().In(clientTimezone)
-	parsedList := ocr.ParseBillListText(ocrText, refTime)
+
+	parsedList := make([]*models.RecognizedReceiptImageResult, 0, len(rawItems))
+	for _, raw := range rawItems {
+		// 基础清洗
+		amountStr := strings.TrimSpace(raw.Amount)
+		if amountStr == "" {
+			// 没有金额就无法生成交易，跳过
+			continue
+		}
+
+		result := &models.RecognizedReceiptImageResult{}
+
+		// 金额 & 收支类型
+		result.Amount = amountStr
+		if amountStr[0] == '-' {
+			result.Type = "expense"
+		} else {
+			result.Type = "income"
+		}
+
+		// 时间：优先用返回的 date；为空则用当前时间
+		dateStr := strings.TrimSpace(raw.Date)
+		if dateStr != "" {
+			result.Time = dateStr
+		} else {
+			result.Time = refTime.Format("2006-01-02 15:04:05")
+		}
+
+		// 账户名称
+		result.AccountName = strings.TrimSpace(raw.Account)
+
+		// 分类名称：从 classify 中取最后一段，例如 "食品饮料-食品" => "食品"
+		classify := strings.TrimSpace(raw.Classify)
+		if classify != "" {
+			parts := strings.Split(classify, "-")
+			name := strings.TrimSpace(parts[len(parts)-1])
+			result.CategoryName = name
+		}
+
+		// 标签：目前只支持单个 label
+		label := strings.TrimSpace(raw.Label)
+		if label != "" {
+			result.TagNames = []string{label}
+		}
+
+		// 描述：优先使用 project，其次使用 text
+		project := strings.TrimSpace(raw.Project)
+		text := strings.TrimSpace(raw.Text)
+		if project != "" {
+			result.Description = project
+		} else if text != "" {
+			result.Description = text
+		}
+
+		parsedList = append(parsedList, result)
+	}
+
 	if len(parsedList) == 0 {
 		return nil, errs.ErrNoTransactionInformationInImage
 	}
