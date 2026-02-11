@@ -17,6 +17,7 @@
             </f7-nav-title>
             <f7-nav-right :class="{ 'navbar-compact-icons': true, 'disabled': loading }">
                 <f7-link icon-f7="search" @click="toggleSearchbar"></f7-link>
+                <f7-link icon-f7="doc_text" :class="{ 'disabled': !canAddTransaction }" @click="addByOCRBillImage"></f7-link>
                 <f7-link icon-f7="plus" :class="{ 'disabled': !canAddTransaction }" @click="add"></f7-link>
             </f7-nav-right>
 
@@ -1406,6 +1407,11 @@ function add(): void {
     }
 
     props.f7router.navigate(`/transaction/add?${params.join('&')}`);
+}
+
+/** 暂时与 add() 行为相同；后续可改为 OCR 识别流程 */
+function addByOCRBillImage(): void {
+    add();
 }
 
 function duplicate(transaction: Transaction): void {

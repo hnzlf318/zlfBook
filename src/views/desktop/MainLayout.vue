@@ -212,7 +212,7 @@
 <script setup lang="ts">
 import SnackBar from '@/components/desktop/SnackBar.vue';
 
-import { ref, computed, useTemplateRef } from 'vue';
+import { ref, computed, useTemplateRef, watch } from 'vue';
 
 import { useDisplay, useTheme } from 'vuetify';
 import { useRoute, useRouter } from 'vue-router';
@@ -302,6 +302,10 @@ const currentTheme = computed<string>({
 
 const showAddTransactionButtonInDesktopNavbar = computed<boolean>(() => settingsStore.appSettings.showAddTransactionButtonInDesktopNavbar);
 const isEnableApplicationLock = computed<boolean>(() => settingsStore.appSettings.applicationLock);
+
+watch(() => route.fullPath, () => {
+    showVerticalOverlayMenu.value = false;
+});
 
 function handleNavScroll(e: Event): void {
     isVerticalNavScrolled.value = (e.target as HTMLElement).scrollTop > 0;
