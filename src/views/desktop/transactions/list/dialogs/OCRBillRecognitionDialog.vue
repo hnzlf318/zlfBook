@@ -1,11 +1,11 @@
 <template>
     <v-dialog width="900" :persistent="loading || recognizing || !!imageFile" v-model="showState" @paste="onPaste">
-        <v-card class="pa-sm-1 pa-md-2">
+        <v-card class="pa-sm-1 pa-md-2 d-flex flex-column">
             <template #title>
                 <h4 class="text-h4">{{ tt('OCR Bill Recognition') }}</h4>
             </template>
 
-            <v-card-text class="d-flex flex-column flex-md-row flex-grow-1 overflow-y-auto" style="min-height: 320px">
+            <v-card-text class="d-flex flex-column flex-grow-1 overflow-y-auto ocr-card-body">
                 <div v-if="!recognizedList.length" class="w-100 border position-relative ocr-drop-area"
                      @dragenter.prevent="onDragEnter"
                      @dragover.prevent
@@ -16,7 +16,7 @@
                         <div class="d-inline-flex flex-column dropzone-content" v-if="!loading && !imageFile && !isDragOver"
                              @click="showOpenImageDialog">
                             <h3 class="pa-2">{{ tt('You can drag and drop, paste or click to select a bill or transaction list screenshot') }}</h3>
-                            <span class="pa-2">{{ tt('OCR runs locally on the server. Supports Chinese bill format (e.g. 2月7日 21:49, -100.00).') }}</span>
+                            <span class="pa-2 text-medium-emphasis">{{ tt('OCR runs on server (no AI, no tokens). Supports Chinese bill format (e.g. 2月7日 21:49, -100.00).') }}</span>
                         </div>
                         <h3 class="pa-2" v-else-if="!loading && isDragOver">{{ tt('Release to load image') }}</h3>
                         <h3 class="pa-2" v-else-if="loading">{{ tt('Loading image...') }}</h3>
@@ -57,18 +57,21 @@
                 </div>
             </v-card-text>
 
-            <v-card-text v-if="!recognizedList.length">
-                <div class="w-100 d-flex justify-center flex-wrap gap-4 align-center">
+            <v-card-actions class="ocr-card-actions pt-0">
+                <v-spacer />
+                <template v-if="!recognizedList.length">
                     <v-btn color="primary" variant="tonal" :disabled="loading || recognizing" @click="showOpenImageDialog">
                         {{ tt('Select Image') }}
                     </v-btn>
-                    <v-btn :disabled="loading || recognizing || !imageFile" @click="recognize">
+                    <v-btn class="ms-2" :disabled="loading || recognizing || !imageFile" @click="recognize">
                         {{ tt('Recognize') }}
-                        <v-progress-circular indeterminate size="22" class="ms-2" v-if="recognizing"></v-progress-circular>
+                        <v-progress-circular v-if="recognizing" indeterminate size="22" class="ms-2" />
                     </v-btn>
-                    <v-btn color="secondary" variant="tonal" :disabled="loading || recognizing" @click="cancel">{{ tt('Cancel') }}</v-btn>
-                </div>
-            </v-card-text>
+                    <v-btn color="secondary" variant="tonal" class="ms-2" :disabled="loading || recognizing" @click="cancel">
+                        {{ tt('Cancel') }}
+                    </v-btn>
+                </template>
+            </v-card-actions>
         </v-card>
     </v-dialog>
 
@@ -261,6 +264,12 @@ defineExpose({ open });
 }
 .ocr-drop-area {
     min-height: 200px;
+}
+.ocr-card-body {
+    min-height: 280px;
+}
+.ocr-card-actions {
+    flex-shrink: 0;
 }
 .dropzone-blurry-bg { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .dropzone-dragover { border: 6px dashed rgba(var(--v-border-color),var(--v-border-opacity)); }
