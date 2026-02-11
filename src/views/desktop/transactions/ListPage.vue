@@ -71,10 +71,6 @@
                                                                      :title="tt('Add')"
                                                                      :prepend-icon="mdiPlusCircle"
                                                                      @click="add()"></v-list-item>
-                                                        <v-list-item key="OCRBillRecognition"
-                                                                     :title="tt('OCR Bill Recognition')"
-                                                                     :prepend-icon="mdiFileDocumentOutline"
-                                                                     @click="addByOCRBillImage"></v-list-item>
                                                         <v-list-item :key="template.id"
                                                                      :title="template.name"
                                                                      :prepend-icon="mdiTextBoxOutline"
@@ -82,6 +78,11 @@
                                                                      @click="add(template)"></v-list-item>
                                                     </v-list>
                                                 </v-menu>
+                                            </v-btn>
+                                            <v-btn class="ms-3" color="default" variant="outlined"
+                                                   :disabled="loading || !canAddTransaction"
+                                                   @click="addByOCRBillImage">
+                                                {{ tt('OCR Bill Recognition') }}
                                             </v-btn>
                                             <v-btn class="ms-3" color="default" variant="outlined"
                                                    :disabled="loading" @click="importTransaction"
@@ -862,8 +863,8 @@ const transactionsStore = useTransactionsStore();
 const transactionTemplatesStore = useTransactionTemplatesStore();
 const desktopPageStore = useDesktopPageStore();
 
-/** 始终显示下拉菜单，包含「添加」与「OCR账单识别」，便于验证菜单是否正常弹出 */
-const hasAddTransactionMenu = computed<boolean>(() => true);
+const hasAddTransactionMenu = computed<boolean>(() =>
+    !!(allTransactionTemplates.value && allTransactionTemplates.value.length));
 
 function onAddButtonClick(): void {
     if (!hasAddTransactionMenu.value) {
