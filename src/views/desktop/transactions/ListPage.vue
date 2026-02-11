@@ -74,8 +74,7 @@
                                                         <v-list-item key="OCRBillRecognition"
                                                                      :title="tt('OCR Bill Recognition')"
                                                                      :prepend-icon="mdiFileDocumentOutline"
-                                                                     v-if="isTransactionFromOCRImageRecognitionEnabled()"
-                                                                     @click.stop="addByOCRBillImage"></v-list-item>
+                                                                     @click="add()"></v-list-item>
                                                         <v-list-item :key="template.id"
                                                                      :title="template.name"
                                                                      :prepend-icon="mdiTextBoxOutline"
@@ -863,9 +862,8 @@ const transactionsStore = useTransactionsStore();
 const transactionTemplatesStore = useTransactionTemplatesStore();
 const desktopPageStore = useDesktopPageStore();
 
-const hasAddTransactionMenu = computed<boolean>(() =>
-    isTransactionFromOCRImageRecognitionEnabled() ||
-    !!(allTransactionTemplates.value && allTransactionTemplates.value.length));
+/** 始终显示下拉菜单，包含「添加」与「OCR账单识别」，便于验证菜单是否正常弹出 */
+const hasAddTransactionMenu = computed<boolean>(() => true);
 
 function onAddButtonClick(): void {
     if (!hasAddTransactionMenu.value) {
