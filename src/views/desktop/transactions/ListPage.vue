@@ -756,7 +756,6 @@ import {
     mdiArrowRight,
     mdiPound,
     mdiFormatListBulleted,
-    mdiFileDocumentOutline,
     mdiTextBoxOutline,
     mdiPlusCircle
 } from '@mdi/js';
