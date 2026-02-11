@@ -907,6 +907,8 @@ const showFilterCategoryDialog = ref<boolean>(false);
 const showFilterTagDialog = ref<boolean>(false);
 /** When true, onBeforeRouteUpdate will skip init() to avoid re-entry loop from our own router.push */
 const skipNextRouteUpdate = ref<boolean>(false);
+/** Re-entry guard to prevent init() recursion causing stack overflow */
+const isInitializing = ref<boolean>(false);
 
 const isDarkMode = computed<boolean>(() => theme.global.name.value === ThemeType.Dark);
 const numeralSystem = computed<NumeralSystem>(() => getCurrentNumeralSystemType());
@@ -979,12 +981,17 @@ const transactions = computed<Transaction[]>(() => {
 });
 
 const recentDateRangeIndex = computed<number>({
-    get: () => getRecentDateRangeIndex(recentMonthDateRanges.value, query.value.dateType, query.value.minTime, query.value.maxTime, firstDayOfWeek.value, fiscalYearStart.value),
-    set: (value) => {
-        if (value < 0 || value >= recentMonthDateRanges.value.length) {
-            value = 0;
+    get: () => {
+        const idx = getRecentDateRangeIndex(recentMonthDateRanges.value, query.value.dateType, query.value.minTime, query.value.maxTime, firstDayOfWeek.value, fiscalYearStart.value);
+        if (idx < 0 || recentMonthDateRanges.value.length === 0) {
+            return 0;
         }
-
+        return idx;
+    },
+    set: (value) => {
+        if (value < 0 || value >= recentMonthDateRanges.value.length || recentMonthDateRanges.value.length === 0) {
+            return;
+        }
         changeDateFilter(recentMonthDateRanges.value[value] as LocalizedRecentMonthDateRange);
     }
 });
@@ -1137,6 +1144,18 @@ function updateUrlWhenChanged(changed: boolean): void {
 }
 
 function init(initProps: TransactionListProps): void {
+    if (isInitializing.value) {
+        return;
+    }
+    isInitializing.value = true;
+    try {
+        initImpl(initProps);
+    } finally {
+        isInitializing.value = false;
+    }
+}
+
+function initImpl(initProps: TransactionListProps): void {
     let dateRange: TimeRangeAndDateType | null = getDateRangeByDateType(initProps.initDateType ? parseInt(initProps.initDateType) : undefined, firstDayOfWeek.value, fiscalYearStart.value);
 
     if (!dateRange && initProps.initDateType && initProps.initMaxTime && initProps.initMinTime &&
