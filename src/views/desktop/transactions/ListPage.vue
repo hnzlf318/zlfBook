@@ -905,6 +905,8 @@ const showCustomMonthDialog = ref<boolean>(false);
 const showFilterAccountDialog = ref<boolean>(false);
 const showFilterCategoryDialog = ref<boolean>(false);
 const showFilterTagDialog = ref<boolean>(false);
+/** When true, onBeforeRouteUpdate will skip init() to avoid re-entry loop from our own router.push */
+const skipNextRouteUpdate = ref<boolean>(false);
 
 const isDarkMode = computed<boolean>(() => theme.global.name.value === ThemeType.Dark);
 const numeralSystem = computed<NumeralSystem>(() => getCurrentNumeralSystemType());
@@ -1129,6 +1131,7 @@ function updateUrlWhenChanged(changed: boolean): void {
         loading.value = true;
         currentPageTransactions.value = [];
         transactionsStore.clearTransactions();
+        skipNextRouteUpdate.value = true;
         router.push(`/transaction/list?${transactionsStore.getTransactionListPageParams(pageType.value)}`);
     }
 }
@@ -1752,8 +1755,13 @@ function onShowDateRangeError(message: string): void {
 }
 
 onBeforeRouteUpdate((to) => {
+    if (skipNextRouteUpdate.value) {
+        skipNextRouteUpdate.value = false;
+        return;
+    }
     if (to.query) {
         init({
+            initPageType: (to.query['pageType'] as string | null) || undefined,
             initDateType: (to.query['dateType'] as string | null) || undefined,
             initMinTime: (to.query['minTime'] as string | null) || undefined,
             initMaxTime: (to.query['maxTime'] as string | null) || undefined,
