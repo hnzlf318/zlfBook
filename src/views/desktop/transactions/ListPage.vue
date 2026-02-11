@@ -1620,9 +1620,34 @@ function add(template?: TransactionTemplate): void {
     });
 }
 
-/** 暂时与 add() 行为相同，用于验证下拉菜单是否正常；确认后再改为 OCR 识别逻辑 */
 function addByOCRBillImage(): void {
-    add();
+    nextTick(() => {
+        ocrBillRecognitionDialog.value?.open().then(result => {
+            editDialog.value?.open({
+                time: result.time,
+                type: result.type,
+                categoryId: result.categoryId,
+                accountId: result.sourceAccountId,
+                destinationAccountId: result.destinationAccountId,
+                amount: result.sourceAmount,
+                destinationAmount: result.destinationAmount,
+                tagIds: result.tagIds ? result.tagIds.join(',') : undefined,
+                comment: result.comment,
+                noTransactionDraft: true
+            }).then(editResult => {
+                if (editResult && editResult.message) {
+                    snackbar.value?.showMessage(editResult.message);
+                }
+                reload(false, false);
+            }).catch(error => {
+                if (error) {
+                    snackbar.value?.showError(error);
+                }
+            });
+        }).catch(() => {
+            // 用户取消 OCR 弹窗
+        });
+    });
 }
 
 function importTransaction(): void {
