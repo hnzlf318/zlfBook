@@ -155,8 +155,13 @@ function getDisplayDay(date: Date): string {
     return getCalendarDisplayDayOfMonthFromDateTime(getYearMonthDayDateTime(date.getFullYear(), date.getMonth() + 1, date.getDate()), actualNumeralSystem.value);
 }
 
+function getModelValue(): SupportedModelValue {
+    return dateTime.value;
+}
+
 defineExpose({
-    switchView
+    switchView,
+    getModelValue
 });
 </script>
 

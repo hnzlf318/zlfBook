@@ -222,6 +222,17 @@ function setCurrentTime(): void {
 }
 
 function confirm(): void {
+    if (mode.value === 'date' && datetimepicker.value?.getModelValue) {
+        const pickerValue = datetimepicker.value.getModelValue();
+        if (pickerValue instanceof Date && dateTime.value) {
+            const merged = new Date(pickerValue.getFullYear(), pickerValue.getMonth(), pickerValue.getDate(),
+                dateTime.value.getHours(), dateTime.value.getMinutes(), dateTime.value.getSeconds());
+            dateTime.value = merged;
+        } else if (pickerValue instanceof Date) {
+            dateTime.value = pickerValue;
+        }
+    }
+
     if (!dateTime.value) {
         return;
     }

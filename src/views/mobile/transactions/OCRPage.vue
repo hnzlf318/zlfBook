@@ -13,18 +13,20 @@
             <f7-list strong inset dividers>
                 <f7-list-item v-for="(item, idx) in recognizedList" :key="idx" class="ocr-result-item">
                     <template #content>
-                        <div class="ocr-row">
-                            <span class="ocr-type">{{ getTypeLabel(item.type) }}</span>
-                            <span class="ocr-amount">{{ formatAmount(item.sourceAmount) }}</span>
-                            <span class="ocr-meta">{{ getCategoryName(item.categoryId) }} · {{ getAccountName(item.sourceAccountId) }}</span>
-                            <span class="ocr-meta">{{ formatTime(item.time) }}</span>
-                            <span class="ocr-meta" v-if="getItemNames(item.itemIds)">{{ getItemNames(item.itemIds) }}</span>
-                            <span class="ocr-meta" v-if="getTagNames(item.tagIds)">{{ getTagNames(item.tagIds) }}</span>
-                            <span class="ocr-desc" v-if="item.comment">{{ item.comment }}</span>
+                        <div class="ocr-item-inner">
+                            <div class="ocr-row">
+                                <span class="ocr-type">{{ getTypeLabel(item.type) }}</span>
+                                <span class="ocr-amount">{{ formatAmount(item.sourceAmount) }}</span>
+                                <span class="ocr-meta">{{ getCategoryName(item.categoryId) }} · {{ getAccountName(item.sourceAccountId) }}</span>
+                                <span class="ocr-meta">{{ formatTime(item.time) }}</span>
+                                <span class="ocr-meta" v-if="getItemNames(item.itemIds)">{{ getItemNames(item.itemIds) }}</span>
+                                <span class="ocr-meta" v-if="getTagNames(item.tagIds)">{{ getTagNames(item.tagIds) }}</span>
+                                <span class="ocr-desc" v-if="item.comment">{{ item.comment }}</span>
+                            </div>
+                            <f7-button small fill color="blue" class="ocr-add-btn" :disabled="addedRowIndices.has(idx)" @click="onAdd(item, idx)">
+                                {{ tt('Add') }}
+                            </f7-button>
                         </div>
-                        <f7-button small fill color="blue" class="ocr-add-btn" :disabled="addedRowIndices.has(idx)" @click="onAdd(item, idx)">
-                            {{ tt('Add') }}
-                        </f7-button>
                     </template>
                 </f7-list-item>
             </f7-list>
@@ -185,16 +187,25 @@ function onAdd(item: RecognizedReceiptImageResponse, idx: number): void {
 .ocr-result-item {
     align-items: flex-start;
 }
+.ocr-item-inner {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+}
 .ocr-row {
     display: flex;
     flex-wrap: wrap;
     gap: 0.25rem 0.5rem;
-    margin-bottom: 0.5rem;
+    flex: 1;
+    min-width: 0;
+    text-align: left;
 }
 .ocr-type { font-weight: 600; }
 .ocr-amount { font-weight: 600; margin-left: 0.25rem; }
 .ocr-meta { font-size: 0.9em; color: var(--f7-block-title-medium-text-color); }
 .ocr-desc { width: 100%; font-size: 0.85em; color: var(--f7-block-title-medium-text-color); }
-.ocr-add-btn { margin-top: 0.25rem; }
+.ocr-add-btn { flex-shrink: 0; margin-top: 0.25rem; }
 .ocr-actions { margin-top: 1rem; }
 </style>
