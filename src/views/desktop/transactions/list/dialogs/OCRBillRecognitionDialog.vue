@@ -31,26 +31,28 @@
                     <v-table density="compact" class="ocr-recognized-table">
                         <thead>
                             <tr>
-                                <th class="text-end">{{ tt('Amount') }}</th>
-                                <th>{{ tt('Category') }}</th>
+                                <th class="ocr-cell-type">{{ tt('Income or Expense') }}</th>
+                                <th class="ocr-cell-amount">{{ tt('Amount') }}</th>
+                                <th class="ocr-cell-category">{{ tt('Category') }}</th>
                                 <th class="ocr-cell-account">{{ tt('Account') }}</th>
-                                <th class="text-end">{{ tt('Time') }}</th>
-                                <th>{{ tt('Transaction Items') }}</th>
+                                <th class="ocr-cell-time">{{ tt('Time') }}</th>
+                                <th class="ocr-cell-items">{{ tt('Transaction Items') }}</th>
                                 <th class="ocr-cell-tags">{{ tt('Tags') }}</th>
-                                <th>{{ tt('Description') }}</th>
+                                <th class="ocr-cell-desc">{{ tt('Description') }}</th>
                                 <th class="ocr-cell-actions"></th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="(item, idx) in recognizedList" :key="idx">
-                                <td class="text-end">{{ formatAmount(item.sourceAmount) }}</td>
-                                <td>{{ getCategoryName(item.categoryId) || '-' }}</td>
+                                <td class="ocr-cell-type">{{ getTypeLabel(item.type) }}</td>
+                                <td class="ocr-cell-amount text-end">{{ formatAmount(item.sourceAmount) }}</td>
+                                <td class="ocr-cell-category">{{ getCategoryName(item.categoryId) || '-' }}</td>
                                 <td class="ocr-cell-account">{{ getAccountName(item.sourceAccountId) || '-' }}</td>
-                                <td class="text-end">{{ formatTime(item.time) }}</td>
-                                <td>{{ getItemNames(item.itemIds) || '-' }}</td>
+                                <td class="ocr-cell-time text-end">{{ formatTime(item.time) }}</td>
+                                <td class="ocr-cell-items">{{ getItemNames(item.itemIds) || '-' }}</td>
                                 <td class="ocr-cell-tags">{{ getTagNames(item.tagIds) || '-' }}</td>
-                                <td>{{ item.comment || '-' }}</td>
-                                <td>
+                                <td class="ocr-cell-desc">{{ item.comment || '-' }}</td>
+                                <td class="ocr-cell-actions">
                                     <v-btn size="small" color="primary" variant="tonal"
                                            :disabled="addedRowIndices.has(idx)"
                                            @click="onAddClick(item, idx)">
@@ -103,6 +105,7 @@ import { useTransactionTagsStore } from '@/stores/transactionTag.ts';
 import { useTransactionItemsStore } from '@/stores/transactionItem.ts';
 import { useTransactionsStore } from '@/stores/transaction.ts';
 
+import { TransactionType } from '@/core/transaction.ts';
 import { KnownFileType } from '@/core/file.ts';
 import { ThemeType } from '@/core/theme.ts';
 import { SUPPORTED_IMAGE_EXTENSIONS } from '@/consts/file.ts';
@@ -165,6 +168,12 @@ function getItemNames(itemIds?: string[]): string {
     if (!itemIds?.length) return '';
     const itemsMap = transactionItemsStore.allTransactionItemsMap;
     return itemIds.map(id => itemsMap[id]?.name ?? id).join(', ');
+}
+
+function getTypeLabel(type?: number): string {
+    if (type === TransactionType.Income) return tt('Income');
+    if (type === TransactionType.Expense) return tt('Expense');
+    return '-';
 }
 
 function loadImage(file: File): void {
@@ -348,14 +357,36 @@ defineExpose({ open, markRowAdded });
 .ocr-recognized-table {
     table-layout: auto;
 }
-.ocr-recognized-table .ocr-cell-account,
-.ocr-recognized-table .ocr-cell-tags {
+.ocr-recognized-table th,
+.ocr-recognized-table td {
     white-space: nowrap;
-    min-width: 5em;
+}
+.ocr-recognized-table .ocr-cell-type {
+    min-width: 4ch;
+}
+.ocr-recognized-table .ocr-cell-amount {
+    min-width: 6ch;
+}
+.ocr-recognized-table .ocr-cell-category {
+    min-width: 4ch;
+}
+.ocr-recognized-table .ocr-cell-account {
+    min-width: 4ch;
+}
+.ocr-recognized-table .ocr-cell-time {
+    min-width: 8ch;
+}
+.ocr-recognized-table .ocr-cell-items {
+    min-width: 4ch;
+}
+.ocr-recognized-table .ocr-cell-tags {
+    min-width: 4ch;
+}
+.ocr-recognized-table .ocr-cell-desc {
+    min-width: 4ch;
 }
 .ocr-recognized-table .ocr-cell-actions {
     width: 1%;
-    white-space: nowrap;
 }
 .dropzone-blurry-bg { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .dropzone-dragover { border: 6px dashed rgba(var(--v-border-color),var(--v-border-opacity)); }
