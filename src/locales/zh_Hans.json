@@ -1920,6 +1920,7 @@
     "OCR runs locally on the server. Supports Chinese bill format (e.g. 2月7日 21:49, -100.00).": "OCR 在服务端本地运行，支持中文账单格式（如 2月7日 21:49、-100.00）。",
     "Recognized transactions (click Add to confirm and edit):": "已识别的交易（点击添加以确认并编辑）：",
     "Select Another Image": "选择其他图片",
+    "Select Image": "选择图片",
     "No transaction information detected": "未识别到交易信息",
     "Category": "分类",
     "Secondary Category": "二级分类",
