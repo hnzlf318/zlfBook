@@ -1643,7 +1643,7 @@ function addByOCRBillImage(): void {
                     reload(false, false);
                 } catch (error) {
                     if (error && !(error as { processed?: boolean }).processed) {
-                        snackbar.value?.showError(error);
+                        snackbar.value?.showError(error as string | { message: string } | { error: import('@/core/api').ErrorResponse });
                     }
                 } finally {
                     ocrBillRecognitionDialog.value?.markRowAdded(rowIndex);
