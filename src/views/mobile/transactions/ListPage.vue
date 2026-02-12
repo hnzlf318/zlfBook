@@ -1409,9 +1409,8 @@ function add(): void {
     props.f7router.navigate(`/transaction/add?${params.join('&')}`);
 }
 
-/** 暂时与 add() 行为相同；后续可改为 OCR 识别流程 */
 function addByOCRBillImage(): void {
-    add();
+    props.f7router.navigate('/transaction/ocr');
 }
 
 function duplicate(transaction: Transaction): void {
