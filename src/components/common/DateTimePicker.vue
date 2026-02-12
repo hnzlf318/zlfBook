@@ -18,7 +18,8 @@
                      :disabled-dates="disabledDates"
                      :range="isDateRange ? { partialRange: false } : undefined"
                      :preset-dates="presetRanges"
-                     v-model="dateTime">
+                     :model-value="internalValue"
+                     @update:model-value="onPickerUpdate">
         <template #year="{ value }">
             {{ getDisplayYear(value) }}
         </template>
@@ -122,14 +123,15 @@ watch(() => props.modelValue, (v) => {
     internalValue.value = v instanceof Date ? new Date(v.getTime()) : v;
 });
 
-watch(internalValue, (v) => {
-    const same = props.modelValue instanceof Date && v instanceof Date
-        ? props.modelValue.getTime() === v.getTime()
-        : props.modelValue === v;
+function onPickerUpdate(value: SupportedModelValue): void {
+    internalValue.value = value instanceof Date ? new Date(value.getTime()) : value;
+    const same = props.modelValue instanceof Date && internalValue.value instanceof Date
+        ? props.modelValue.getTime() === internalValue.value.getTime()
+        : props.modelValue === internalValue.value;
     if (!same) {
-        emit('update:modelValue', v);
+        emit('update:modelValue', internalValue.value);
     }
-}, { deep: true });
+}
 
 const dateTime = internalValue;
 

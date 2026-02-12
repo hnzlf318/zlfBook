@@ -18,7 +18,8 @@
                                   :is-dark-mode="isDarkMode"
                                   :enable-time-picker="false"
                                   :show-alternate-dates="true"
-                                  v-model="dateTime"
+                                  :model-value="dateTime"
+                                  @update:model-value="onDatePickerUpdate"
                                   v-show="mode === 'date'">
                 </date-time-picker>
             </div>
@@ -213,6 +214,18 @@ function switchMode(): void {
     }
 }
 
+function onDatePickerUpdate(value: Date | Date[] | null): void {
+    if (value instanceof Date) {
+        if (dateTime.value) {
+            const merged = new Date(value.getFullYear(), value.getMonth(), value.getDate(),
+                dateTime.value.getHours(), dateTime.value.getMinutes(), dateTime.value.getSeconds());
+            dateTime.value = merged;
+        } else {
+            dateTime.value = value;
+        }
+    }
+}
+
 function setCurrentTime(): void {
     dateTime.value = getLocalDatetimeFromSameDateTimeOfUnixTime(getCurrentUnixTime(), props.timezoneUtcOffset);
 
@@ -224,12 +237,14 @@ function setCurrentTime(): void {
 function confirm(): void {
     if (mode.value === 'date' && datetimepicker.value?.getModelValue) {
         const pickerValue = datetimepicker.value.getModelValue();
-        if (pickerValue instanceof Date && dateTime.value) {
-            const merged = new Date(pickerValue.getFullYear(), pickerValue.getMonth(), pickerValue.getDate(),
-                dateTime.value.getHours(), dateTime.value.getMinutes(), dateTime.value.getSeconds());
-            dateTime.value = merged;
-        } else if (pickerValue instanceof Date) {
-            dateTime.value = pickerValue;
+        if (pickerValue instanceof Date) {
+            if (dateTime.value) {
+                const merged = new Date(pickerValue.getFullYear(), pickerValue.getMonth(), pickerValue.getDate(),
+                    dateTime.value.getHours(), dateTime.value.getMinutes(), dateTime.value.getSeconds());
+                dateTime.value = merged;
+            } else {
+                dateTime.value = pickerValue;
+            }
         }
     }
 
