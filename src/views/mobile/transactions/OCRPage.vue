@@ -1,6 +1,8 @@
 <template>
     <f7-page>
-        <f7-navbar :title="tt('OCR Bill Recognition')" :back-link="tt('Back')">
+        <f7-navbar>
+            <f7-nav-left :back-link="tt('Back')"></f7-nav-left>
+            <f7-nav-title>{{ tt('OCR Bill Recognition') }}</f7-nav-title>
             <f7-nav-right v-if="recognizedList.length">
                 <f7-link icon-f7="photo" :title="tt('Select Another Image')" @click="reset"></f7-link>
             </f7-nav-right>
@@ -19,14 +21,14 @@
                     <template #content>
                         <div class="ocr-item-inner">
                             <div class="ocr-fields">
-                                <div class="ocr-field"><span class="ocr-label">{{ tt('Income or Expense') }}</span><span class="ocr-value">{{ getTypeLabel(item.type) }}</span></div>
-                                <div class="ocr-field"><span class="ocr-label">{{ tt('Amount') }}</span><span class="ocr-value">{{ formatAmount(item.sourceAmount) }}</span></div>
-                                <div class="ocr-field"><span class="ocr-label">{{ tt('Date') }}</span><span class="ocr-value">{{ formatTime(item.time) }}</span></div>
-                                <div class="ocr-field"><span class="ocr-label">{{ tt('Category') }}</span><span class="ocr-value">{{ getCategoryName(item.categoryId) || '-' }}</span></div>
-                                <div class="ocr-field"><span class="ocr-label">{{ tt('Account') }}</span><span class="ocr-value">{{ getAccountName(item.sourceAccountId) || '-' }}</span></div>
-                                <div class="ocr-field" v-if="getItemNames(item.itemIds)"><span class="ocr-label">{{ tt('Transaction Items') }}</span><span class="ocr-value">{{ getItemNames(item.itemIds) }}</span></div>
-                                <div class="ocr-field" v-if="getTagNames(item.tagIds)"><span class="ocr-label">{{ tt('Tags') }}</span><span class="ocr-value">{{ getTagNames(item.tagIds) }}</span></div>
-                                <div class="ocr-field" v-if="item.comment"><span class="ocr-label">{{ tt('Description') }}</span><span class="ocr-value ocr-desc">{{ item.comment }}</span></div>
+                                <div class="ocr-field"><span class="ocr-label">{{ tt('Income or Expense') }}：</span><span class="ocr-value">{{ getTypeLabel(item.type) }}</span></div>
+                                <div class="ocr-field"><span class="ocr-label">{{ tt('Amount') }}：</span><span class="ocr-value">{{ formatAmount(item.sourceAmount) }}</span></div>
+                                <div class="ocr-field"><span class="ocr-label">{{ tt('Date') }}：</span><span class="ocr-value">{{ formatTime(item.time) }}</span></div>
+                                <div class="ocr-field"><span class="ocr-label">{{ tt('Category') }}：</span><span class="ocr-value">{{ getCategoryName(item.categoryId) || '-' }}</span></div>
+                                <div class="ocr-field"><span class="ocr-label">{{ tt('Account') }}：</span><span class="ocr-value">{{ getAccountName(item.sourceAccountId) || '-' }}</span></div>
+                                <div class="ocr-field" v-if="getItemNames(item.itemIds)"><span class="ocr-label">{{ tt('Transaction Items') }}：</span><span class="ocr-value">{{ getItemNames(item.itemIds) }}</span></div>
+                                <div class="ocr-field" v-if="getTagNames(item.tagIds)"><span class="ocr-label">{{ tt('Tags') }}：</span><span class="ocr-value">{{ getTagNames(item.tagIds) }}</span></div>
+                                <div class="ocr-field" v-if="item.comment"><span class="ocr-label">{{ tt('Description') }}：</span><span class="ocr-value ocr-desc">{{ item.comment }}</span></div>
                             </div>
                             <div class="ocr-add-wrap">
                                 <f7-button small fill color="blue" class="ocr-add-btn" :disabled="addedRowIndices.has(idx)" @click="onAdd(item, idx)">
@@ -190,12 +192,20 @@ function onAdd(item: RecognizedReceiptImageResponse, idx: number): void {
 }
 .ocr-result-item {
     align-items: flex-start;
+    padding-left: 0;
+    padding-right: 0;
+}
+.ocr-result-item :deep(.item-content) {
+    padding-left: 0;
+    padding-right: 0;
 }
 .ocr-item-inner {
     display: flex;
     flex-direction: column;
     align-items: stretch;
     width: 100%;
+    padding-left: 16px;
+    padding-right: 16px;
 }
 .ocr-fields {
     text-align: left;
@@ -219,8 +229,11 @@ function onAdd(item: RecognizedReceiptImageResponse, idx: number): void {
     word-break: break-word;
 }
 .ocr-add-wrap {
-    align-self: flex-end;
+    align-self: center;
     margin-top: 0.5rem;
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
 }
 .ocr-add-btn { flex-shrink: 0; }
 </style>
