@@ -14,7 +14,7 @@
         </f7-navbar>
 
         <f7-card class="account-overview-card" :class="{ 'skeleton-text': loading }">
-            <f7-card-header class="display-block" style="padding-top: 120px;">
+            <f7-card-header class="display-block" style="padding-top: 20px;">
                 <p class="no-margin">
                     <small class="card-header-content" v-if="loading">Net assets</small>
                     <small class="card-header-content" v-else-if="!loading">{{ tt('Net assets') }}</small>

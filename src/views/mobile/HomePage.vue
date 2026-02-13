@@ -5,7 +5,7 @@
         </f7-navbar>
 
         <f7-card class="home-summary-card no-margin-top" :class="{ 'skeleton-text': loading }">
-            <f7-card-header class="display-block" style="padding-top: 120px;">
+            <f7-card-header class="display-block" style="padding-top: 20px;">
                 <p class="no-margin">
                     <span class="card-header-content" v-if="loading">
                         <span class="home-summary-month">Month</span>
