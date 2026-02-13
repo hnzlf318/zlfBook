@@ -677,7 +677,8 @@ function open(options: TransactionEditOptions): Promise<TransactionEditResponse 
     }
 
     Promise.all(promises).then(function (responses) {
-        if (editId.value && !responses[3]) {
+        const entityResponse = editId.value ? responses[responses.length - 1] : undefined;
+        if (editId.value && !entityResponse) {
             if (rejectFunc) {
                 if (props.type === TransactionEditPageType.Transaction) {
                     rejectFunc('Unable to retrieve transaction');
@@ -689,12 +690,12 @@ function open(options: TransactionEditOptions): Promise<TransactionEditResponse 
             return;
         }
 
-        if (props.type === TransactionEditPageType.Transaction && options && options.id && responses[3] && responses[3] instanceof Transaction) {
-            const transaction: Transaction = responses[3];
+        if (props.type === TransactionEditPageType.Transaction && options && options.id && entityResponse && entityResponse instanceof Transaction) {
+            const transaction: Transaction = entityResponse;
             setTransaction(transaction, options, true);
             originalTransactionEditable.value = transaction.editable;
-        } else if (props.type === TransactionEditPageType.Template && options && options.id && responses[3] && responses[3] instanceof TransactionTemplate) {
-            const template: TransactionTemplate = responses[3];
+        } else if (props.type === TransactionEditPageType.Template && options && options.id && entityResponse && entityResponse instanceof TransactionTemplate) {
+            const template: TransactionTemplate = entityResponse;
             setTransaction(template, options, false);
 
             if (!(transaction.value instanceof TransactionTemplate)) {
