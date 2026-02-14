@@ -589,7 +589,7 @@ Usage:
     ebktools.sh [--tz-name <name>] [--tz-offset <offset>] <command> [command-options]
 
 Environment Variables (Required):
-    EBKTOOL_SERVER_BASEURL      ezBookkeeping server base URL (e.g., http://localhost:8080)
+    EBKTOOL_SERVER_BASEURL      ezBookkeeping server base URL (e.g., http://localhost:8081)
     EBKTOOL_TOKEN               ezBookkeeping API token
 
 Global Options:
@@ -603,7 +603,7 @@ Commands:
 
 Examples:
     # Set environment variables
-    export EBKTOOL_SERVER_BASEURL="http://localhost:8080"
+    export EBKTOOL_SERVER_BASEURL="http://localhost:8081"
     export EBKTOOL_TOKEN="YOUR_TOKEN"
 
     # List all available commands
@@ -722,7 +722,7 @@ call_api() {
 
     if [ -z "$serverBaseUrl" ]; then
         echo_red "Error: Environment variable 'EBKTOOL_SERVER_BASEURL' is not set."
-        echo "Please set it to your ezBookkeeping server base URL (e.g., http://localhost:8080)"
+        echo "Please set it to your ezBookkeeping server base URL (e.g., http://localhost:8081)"
         exit 1
     fi
 

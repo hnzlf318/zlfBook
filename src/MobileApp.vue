@@ -27,7 +27,7 @@ import { getTheme, isEnableSwipeBack, isEnableAnimate } from '@/lib/settings.ts'
 import { initMapProvider } from '@/lib/map/index.ts';
 import { isUserLogined, isUserUnlocked } from '@/lib/userstate.ts';
 import { setExpenseAndIncomeAmountColor } from '@/lib/ui/common.ts';
-import { isiOSHomeScreenMode, isModalShowing, setAppFontSize } from '@/lib/ui/mobile.ts';
+import { isiOSHomeScreenMode, isAndroid, isModalShowing, setAppFontSize } from '@/lib/ui/mobile.ts';
 
 const { tt, getCurrentLanguageInfo, setLanguage, initLocale } = useI18n();
 
@@ -95,7 +95,7 @@ const f7params = ref<Framework7Parameters>({
     },
     view: {
         animate: isEnableAnimate(),
-        browserHistory: !isiOSHomeScreenMode(),
+        browserHistory: !isiOSHomeScreenMode() && !isAndroid(),
         browserHistoryInitialMatch: true,
         browserHistoryAnimate: false,
         iosSwipeBack: isEnableSwipeBack(),

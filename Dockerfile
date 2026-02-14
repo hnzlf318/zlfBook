@@ -52,5 +52,5 @@ COPY --chown=1000:1000 conf /ezbookkeeping/conf
 COPY --chown=1000:1000 templates /ezbookkeeping/templates
 COPY --chown=1000:1000 LICENSE /ezbookkeeping/LICENSE
 USER 1000:1000
-EXPOSE 8080
+EXPOSE 8081
 ENTRYPOINT ["/docker-entrypoint.sh"]

@@ -26,6 +26,11 @@ export function isiOSHomeScreenMode(): boolean {
     return isiOS() && !!window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
 }
 
+/** Android (including Honor MagicOS). Used to avoid browser history on mobile so back key stays in-app. */
+export function isAndroid(): boolean {
+    return /android/i.test(navigator.userAgent);
+}
+
 export function showLoading(delayConditionFunc?: () => boolean, delayMills?: number): void {
     if (!delayConditionFunc) {
         f7ready((f7) => {

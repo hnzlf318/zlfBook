@@ -833,7 +833,7 @@ function Show-Help {
     Write-Host "    ebktools.ps1 [-tzName <name>] [-tzOffset <offset>] <command> [command-options]"
     Write-Host ""
     Write-Host "Environment Variables (Required):"
-    Write-Host "    EBKTOOL_SERVER_BASEURL      ezBookkeeping server base URL (e.g., http://localhost:8080)"
+    Write-Host "    EBKTOOL_SERVER_BASEURL      ezBookkeeping server base URL (e.g., http://localhost:8081)"
     Write-Host "    EBKTOOL_TOKEN               ezBookkeeping API token"
     Write-Host ""
     Write-Host "Global Options:"
@@ -847,7 +847,7 @@ function Show-Help {
     Write-Host ""
     Write-Host "Examples:"
     Write-Host "    # Set environment variables"
-    Write-Host "    `$env:EBKTOOL_SERVER_BASEURL = 'http://localhost:8080'"
+    Write-Host "    `$env:EBKTOOL_SERVER_BASEURL = 'http://localhost:8081'"
     Write-Host "    `$env:EBKTOOL_TOKEN = 'YOUR_TOKEN'"
     Write-Host ""
     Write-Host "    # List all available commands"
@@ -1039,7 +1039,7 @@ function Invoke-Api {
 
     if (-not $serverBaseUrl) {
         Write-Red "Error: Environment variable 'EBKTOOL_SERVER_BASEURL' is not set."
-        Write-Host "Please set it to your ezBookkeeping server base URL (e.g., http://localhost:8080)"
+        Write-Host "Please set it to your ezBookkeeping server base URL (e.g., http://localhost:8081)"
         exit 1
     }
 

@@ -149,7 +149,7 @@ const (
 
 const (
 	defaultHttpAddr string = "0.0.0.0"
-	defaultHttpPort uint16 = 8080
+	defaultHttpPort uint16 = 8081
 	defaultDomain   string = "localhost"
 
 	defaultDatabaseHost            string = "127.0.0.1:3306"
