@@ -11,6 +11,7 @@
                    @focus="codes[index]!.focused = true"
                    @blur="codes[index]!.focused = false"
                    @keydown="onKeydown(index, $event)"
+                   @input="onInputEvent(index, $event)"
                    @paste="onPaste(index, $event)"
                    @change="onInput(index, $event)"
             />
@@ -264,6 +265,43 @@ function onPaste(index: number, event: ClipboardEvent): void {
     autoFillText(index, text);
 
     event.preventDefault();
+}
+
+/** Handles @input so that on mobile (where keydown may not fire or key is Unidentified) focus still moves to next box. */
+function onInputEvent(index: number, event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+    if (!target) {
+        return;
+    }
+
+    const value = target.value ?? '';
+
+    if (value.length === 0) {
+        codes.value[index]!.value = '';
+        setInputType(index);
+        setPreviousFocus(index);
+        return;
+    }
+
+    if (value.length === 1) {
+        let digit = '';
+        if (NumeralSystem.WesternArabicNumerals.isDigit(value)) {
+            digit = value;
+        } else if (numeralSystem.value.isDigit(value)) {
+            digit = numeralSystem.value.replaceLocalizedDigitsToWesternArabicDigits(value);
+        }
+        if (digit) {
+            codes.value[index]!.value = digit;
+            setInputType(index);
+            setNextFocus(index);
+            if (props.autoConfirm && finalPinCode.value.length === props.length) {
+                emit('pincode:confirm', finalPinCode.value);
+            }
+        }
+        return;
+    }
+
+    autoFillText(index, value);
 }
 
 function onInput(index: number, event: Event | { target: { value: string }, preventDefault: () => void }): void {
