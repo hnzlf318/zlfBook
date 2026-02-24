@@ -1,5 +1,5 @@
 <template>
-    <v-dialog  :persistent="loading || recognizing || !!imageFile" v-model="showState" @paste="onPaste">
+    <v-dialog  :persistent="loading || recognizing || !!imageFile" v-model="showState" @paste="onPaste" :max-width="dialogMaxWidth || undefined">
         <v-card class="pa-sm-1 pa-md-2 d-flex flex-column">
             <template #title>
                 <h4 class="text-h4">{{ tt('OCR Bill Recognition') }}</h4>
@@ -33,11 +33,11 @@
                             <tr>
                                 <th class="ocr-cell-type">{{ tt('Income or Expense') }}</th>
                                 <th class="ocr-cell-amount">{{ tt('Amount') }}</th>
-                                <th class="ocr-cell-category">{{ tt('Category') }}</th>
+                                <th v-if="!hiddenColumns.category" class="ocr-cell-category">{{ tt('Category') }}</th>
                                 <th class="ocr-cell-account">{{ tt('Account') }}</th>
                                 <th class="ocr-cell-time">{{ tt('Time') }}</th>
-                                <th class="ocr-cell-items">{{ tt('Transaction Items') }}</th>
-                                <th class="ocr-cell-tags">{{ tt('Tags') }}</th>
+                                <th v-if="!hiddenColumns.items" class="ocr-cell-items">{{ tt('Transaction Items') }}</th>
+                                <th v-if="!hiddenColumns.tags" class="ocr-cell-tags">{{ tt('Tags') }}</th>
                                 <th class="ocr-cell-desc">{{ tt('Description') }}</th>
                                 <th class="ocr-cell-actions"></th>
                             </tr>
@@ -46,11 +46,11 @@
                             <tr v-for="(item, idx) in recognizedList" :key="idx">
                                 <td class="ocr-cell-type">{{ getTypeLabel(item.type) }}</td>
                                 <td class="ocr-cell-amount text-end">{{ formatAmount(item.sourceAmount) }}</td>
-                                <td class="ocr-cell-category">{{ getCategoryName(item.categoryId) || '-' }}</td>
+                                <td v-if="!hiddenColumns.category" class="ocr-cell-category">{{ getCategoryName(item.categoryId) || '-' }}</td>
                                 <td class="ocr-cell-account">{{ getAccountName(item.sourceAccountId) || '-' }}</td>
                                 <td class="ocr-cell-time text-end">{{ formatTime(item.time) }}</td>
-                                <td class="ocr-cell-items">{{ getItemNames(item.itemIds) || '-' }}</td>
-                                <td class="ocr-cell-tags">{{ getTagNames(item.tagIds) || '-' }}</td>
+                                <td v-if="!hiddenColumns.items" class="ocr-cell-items">{{ getItemNames(item.itemIds) || '-' }}</td>
+                                <td v-if="!hiddenColumns.tags" class="ocr-cell-tags">{{ getTagNames(item.tagIds) || '-' }}</td>
                                 <td class="ocr-cell-desc">{{ item.comment || '-' }}</td>
                                 <td class="ocr-cell-actions">
                                     <v-btn size="small" color="primary" variant="tonal"
@@ -145,7 +145,35 @@ const isDragOver = ref<boolean>(false);
 const recognizedList = ref<RecognizedReceiptImageResponse[]>([]);
 const addedRowIndices = ref<Set<number>>(new Set());
 
+// 可配置的隐藏列：从 OCR 识别响应中读取（仅在首次识别时读取一次）
+const hiddenColumns = ref({
+    category: true,      // 分类
+    items: true,          // 交易项目
+    tags: true,           // 标签
+});
+
+// 对话框最大宽度（0 = 使用默认值）
+const dialogMaxWidth = ref<number | string>(0);
+
 const isDarkMode = computed<boolean>(() => theme.global.name.value === ThemeType.Dark);
+
+// 从 OCR 识别响应中提取配置（仅在首次识别时应用）
+function applyOCRConfig(config?: { hideCategoryColumn?: boolean, hideItemsColumn?: boolean, hideTagsColumn?: boolean, dialogMaxWidth?: number }): void {
+    if (!config) return;
+    
+    if (config.hideCategoryColumn !== undefined) {
+        hiddenColumns.value.category = config.hideCategoryColumn;
+    }
+    if (config.hideItemsColumn !== undefined) {
+        hiddenColumns.value.items = config.hideItemsColumn;
+    }
+    if (config.hideTagsColumn !== undefined) {
+        hiddenColumns.value.tags = config.hideTagsColumn;
+    }
+    if (config.dialogMaxWidth !== undefined) {
+        dialogMaxWidth.value = config.dialogMaxWidth > 0 ? `${config.dialogMaxWidth}px` : 0;
+    }
+}
 
 function getCategoryName(categoryId?: string): string {
     if (!categoryId) return '';
@@ -248,7 +276,10 @@ function recognize(): void {
         transactionItemsStore.loadAllItems({ force: false }),
         transactionsStore.recognizeReceiptImageByOCR(file)
     ]).then((results) => {
-        recognizedList.value = results[4] as RecognizedReceiptImageResponse[];
+        const ocrResult = results[4] as { transactions: RecognizedReceiptImageResponse[], config?: { hideCategoryColumn?: boolean, hideItemsColumn?: boolean, hideTagsColumn?: boolean, dialogMaxWidth?: number } };
+        recognizedList.value = ocrResult.transactions;
+        // 从 OCR 识别响应中提取配置（仅在首次识别时应用）
+        applyOCRConfig(ocrResult.config);
         recognizing.value = false;
     }).catch(error => {
         recognizing.value = false;

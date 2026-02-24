@@ -244,7 +244,18 @@ func (a *LargeLanguageModelsApi) RecognizeReceiptImageByOCRHandler(c *core.WebCo
 		return nil, errs.ErrNoTransactionInformationInImage
 	}
 
-	return &models.RecognizedReceiptImageListResponse{Transactions: transactions}, nil
+	config := a.CurrentConfig()
+	response := &models.RecognizedReceiptImageListResponse{
+		Transactions: transactions,
+		Config: &models.OCRBillRecognitionConfig{
+			HideCategoryColumn: config.OCRBillRecognitionHideCategoryColumn,
+			HideItemsColumn:    config.OCRBillRecognitionHideItemsColumn,
+			HideTagsColumn:     config.OCRBillRecognitionHideTagsColumn,
+			DialogMaxWidth:     config.OCRBillRecognitionDialogMaxWidth,
+		},
+	}
+
+	return response, nil
 }
 
 func (a *LargeLanguageModelsApi) parseRecognizedReceiptImageResponse(c *core.WebContext, uid int64, clientTimezone *time.Location, recognizedResult *models.RecognizedReceiptImageResult, accountMap map[string]*models.Account, expenseCategoryMap map[string]*models.TransactionCategory, incomeCategoryMap map[string]*models.TransactionCategory, transferCategoryMap map[string]*models.TransactionCategory, tagMap map[string]*models.TransactionTag, itemNameMap map[string]*models.TransactionItem) (*models.RecognizedReceiptImageResponse, *errs.Error) {

@@ -22,10 +22,10 @@
                         <div class="ocr-field"><span class="ocr-label">{{ tt('Income or Expense') }}：</span><span class="ocr-value">{{ getTypeLabel(item.type) }}</span></div>
                         <div class="ocr-field"><span class="ocr-label">{{ tt('Amount') }}：</span><span class="ocr-value">{{ formatAmount(item.sourceAmount) }}</span></div>
                         <div class="ocr-field"><span class="ocr-label">{{ tt('Date') }}：</span><span class="ocr-value">{{ formatTime(item.time) }}</span></div>
-                        <div class="ocr-field"><span class="ocr-label">{{ tt('Category') }}：</span><span class="ocr-value">{{ getCategoryName(item.categoryId) || '-' }}</span></div>
+                        <div class="ocr-field" v-if="!hiddenFields.category"><span class="ocr-label">{{ tt('Category') }}：</span><span class="ocr-value">{{ getCategoryName(item.categoryId) || '-' }}</span></div>
                         <div class="ocr-field"><span class="ocr-label">{{ tt('Account') }}：</span><span class="ocr-value">{{ getAccountName(item.sourceAccountId) || '-' }}</span></div>
-                        <div class="ocr-field" v-if="getItemNames(item.itemIds)"><span class="ocr-label">{{ tt('Transaction Items') }}：</span><span class="ocr-value">{{ getItemNames(item.itemIds) }}</span></div>
-                        <div class="ocr-field" v-if="getTagNames(item.tagIds)"><span class="ocr-label">{{ tt('Tags') }}：</span><span class="ocr-value">{{ getTagNames(item.tagIds) }}</span></div>
+                        <div class="ocr-field" v-if="!hiddenFields.items && getItemNames(item.itemIds)"><span class="ocr-label">{{ tt('Transaction Items') }}：</span><span class="ocr-value">{{ getItemNames(item.itemIds) }}</span></div>
+                        <div class="ocr-field" v-if="!hiddenFields.tags && getTagNames(item.tagIds)"><span class="ocr-label">{{ tt('Tags') }}：</span><span class="ocr-value">{{ getTagNames(item.tagIds) }}</span></div>
                         <div class="ocr-field" v-if="item.comment"><span class="ocr-label">{{ tt('Description') }}：</span><span class="ocr-value ocr-desc">{{ item.comment }}</span></div>
                     </div>
                     <div class="ocr-add-wrap">
@@ -76,6 +76,28 @@ const imageInputRef = useTemplateRef<HTMLInputElement>('imageInputRef');
 const recognizing = ref(false);
 const recognizedList = ref<RecognizedReceiptImageResponse[]>([]);
 const addedRowIndices = ref<Set<number>>(new Set());
+
+// 可配置的隐藏字段：从 OCR 识别响应中读取（仅在首次识别时读取一次）
+const hiddenFields = ref({
+    category: true,      // 分类
+    items: true,          // 交易项目
+    tags: true,           // 标签
+});
+
+// 从 OCR 识别响应中提取配置（仅在首次识别时应用）
+function applyOCRConfig(config?: { hideCategoryColumn?: boolean, hideItemsColumn?: boolean, hideTagsColumn?: boolean }): void {
+    if (!config) return;
+    
+    if (config.hideCategoryColumn !== undefined) {
+        hiddenFields.value.category = config.hideCategoryColumn;
+    }
+    if (config.hideItemsColumn !== undefined) {
+        hiddenFields.value.items = config.hideItemsColumn;
+    }
+    if (config.hideTagsColumn !== undefined) {
+        hiddenFields.value.tags = config.hideTagsColumn;
+    }
+}
 
 function getCategoryName(categoryId?: string): string {
     if (!categoryId) return '-';
@@ -136,7 +158,10 @@ function onFileChange(event: Event): void {
         transactionItemsStore.loadAllItems({ force: false }),
         transactionsStore.recognizeReceiptImageByOCR(file)
     ]).then((results) => {
-        recognizedList.value = results[4] as RecognizedReceiptImageResponse[];
+        const ocrResult = results[4] as { transactions: RecognizedReceiptImageResponse[], config?: { hideCategoryColumn?: boolean, hideItemsColumn?: boolean, hideTagsColumn?: boolean } };
+        recognizedList.value = ocrResult.transactions;
+        // 从 OCR 识别响应中提取配置（仅在首次识别时应用）
+        applyOCRConfig(ocrResult.config);
         recognizing.value = false;
     }).catch((error) => {
         recognizing.value = false;

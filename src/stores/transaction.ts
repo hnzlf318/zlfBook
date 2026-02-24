@@ -37,7 +37,8 @@ import {
     type ExportTransactionDataRequest
 } from '@/models/data_management.ts';
 import type {
-    RecognizedReceiptImageResponse
+    RecognizedReceiptImageResponse,
+    OCRBillRecognitionConfig
 } from '@/models/large_language_model.ts';
 
 import {
@@ -1231,7 +1232,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
         });
     }
 
-    function recognizeReceiptImageByOCR(imageFile: File): Promise<RecognizedReceiptImageResponse[]> {
+    function recognizeReceiptImageByOCR(imageFile: File): Promise<{ transactions: RecognizedReceiptImageResponse[], config?: OCRBillRecognitionConfig }> {
         return new Promise((resolve, reject) => {
             services.recognizeReceiptImageByOCR(imageFile).then(response => {
                 const data = response.data;
@@ -1241,7 +1242,10 @@ export const useTransactionsStore = defineStore('transactions', () => {
                     return;
                 }
 
-                resolve(data.result.transactions);
+                resolve({
+                    transactions: data.result.transactions,
+                    config: data.result.config
+                });
             }).catch(error => {
                 logger.error('failed to recognize image by OCR', error);
 

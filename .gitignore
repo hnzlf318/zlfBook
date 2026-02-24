@@ -157,3 +157,5 @@ data/
 storage/
 log/
 src/views/mobile/transactions/说明.txt
+docs/PaddleOCR账单识别-Java实现分析与方案.md
+docs/天若OCR开源版-进程与JNI接入Java方案.md

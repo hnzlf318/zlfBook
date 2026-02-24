@@ -17,6 +17,16 @@ type RecognizedReceiptImageResponse struct {
 // RecognizedReceiptImageListResponse represents a list of recognized transactions (e.g. from OCR bill list)
 type RecognizedReceiptImageListResponse struct {
 	Transactions []RecognizedReceiptImageResponse `json:"transactions"`
+	// OCR bill recognition UI configuration (only included in first response)
+	Config *OCRBillRecognitionConfig `json:"config,omitempty"`
+}
+
+// OCRBillRecognitionConfig represents OCR bill recognition UI configuration
+type OCRBillRecognitionConfig struct {
+	HideCategoryColumn bool   `json:"hideCategoryColumn"`
+	HideItemsColumn    bool   `json:"hideItemsColumn"`
+	HideTagsColumn     bool   `json:"hideTagsColumn"`
+	DialogMaxWidth     uint32 `json:"dialogMaxWidth"`
 }
 
 // RecognizedReceiptImageResult represents the result of recognized receipt image

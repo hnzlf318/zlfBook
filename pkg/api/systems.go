@@ -7,11 +7,17 @@ import (
 )
 
 // SystemsApi represents system api
-type SystemsApi struct{}
+type SystemsApi struct {
+	ApiUsingConfig
+}
 
 // Initialize a system api singleton instance
 var (
-	Systems = &SystemsApi{}
+	Systems = &SystemsApi{
+		ApiUsingConfig: ApiUsingConfig{
+			container: settings.Container,
+		},
+	}
 )
 
 // VersionHandler returns the server version and commit hash
@@ -27,3 +33,4 @@ func (a *SystemsApi) VersionHandler(c *core.WebContext) (any, *errs.Error) {
 
 	return result, nil
 }
+

@@ -11,6 +11,14 @@ export interface RecognizedReceiptImageResponse {
     readonly comment?: string;
 }
 
+export interface OCRBillRecognitionConfig {
+    readonly hideCategoryColumn: boolean;
+    readonly hideItemsColumn: boolean;
+    readonly hideTagsColumn: boolean;
+    readonly dialogMaxWidth: number;
+}
+
 export interface RecognizedReceiptImageListResponse {
     readonly transactions: RecognizedReceiptImageResponse[];
+    readonly config?: OCRBillRecognitionConfig;
 }

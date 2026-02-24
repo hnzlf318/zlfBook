@@ -343,6 +343,11 @@ type Config struct {
 	// OCR via external PaddleOCR HTTP service (for bill / transaction list screenshots)
 	// The endpoint should accept multipart/form-data "image" and return JSON with at least { "success": true, "text": "..." }.
 	PaddleBillOCREndpoint string
+	// OCR bill recognition UI settings
+	OCRBillRecognitionHideCategoryColumn bool
+	OCRBillRecognitionHideItemsColumn   bool
+	OCRBillRecognitionHideTagsColumn    bool
+	OCRBillRecognitionDialogMaxWidth     uint32
 	// Large Language Model for Receipt Image Recognition
 	ReceiptImageRecognitionLLMConfig *LLMConfig
 
@@ -870,6 +875,12 @@ func loadLLMGlobalConfiguration(config *Config, configFile *ini.File, sectionNam
 	// Optional: external PaddleOCR HTTP endpoint for bill / transaction list screenshots.
 	// Example: http://127.0.0.1:8866/api/ocr/bill
 	config.PaddleBillOCREndpoint = getConfigItemStringValue(configFile, sectionName, "paddle_bill_ocr_endpoint")
+
+	// OCR bill recognition UI settings
+	config.OCRBillRecognitionHideCategoryColumn = getConfigItemBoolValue(configFile, sectionName, "ocr_bill_recognition_hide_category_column", true)
+	config.OCRBillRecognitionHideItemsColumn = getConfigItemBoolValue(configFile, sectionName, "ocr_bill_recognition_hide_items_column", true)
+	config.OCRBillRecognitionHideTagsColumn = getConfigItemBoolValue(configFile, sectionName, "ocr_bill_recognition_hide_tags_column", true)
+	config.OCRBillRecognitionDialogMaxWidth = getConfigItemUint32Value(configFile, sectionName, "ocr_bill_recognition_dialog_max_width", 0)
 
 	return nil
 }
