@@ -65,10 +65,6 @@
                             </tr>
                         </tbody>
                     </v-table>
-                    <div class="d-flex mt-3">
-                        <v-btn color="secondary" variant="tonal" @click="reset">{{ tt('Select Another Image') }}</v-btn>
-                        <v-btn color="secondary" variant="text" @click="cancel" class="ms-2">{{ tt('Cancel') }}</v-btn>
-                    </div>
                 </div>
             </v-card-text>
 
@@ -83,6 +79,14 @@
                         <v-progress-circular v-if="recognizing" indeterminate size="22" class="ms-2" />
                     </v-btn>
                     <v-btn color="secondary" variant="tonal" class="ms-2" :disabled="loading || recognizing" @click="cancel">
+                        {{ tt('Cancel') }}
+                    </v-btn>
+                </template>
+                <template v-else>
+                    <v-btn color="secondary" variant="tonal" @click="reset">
+                        {{ tt('Select Another Image') }}
+                    </v-btn>
+                    <v-btn color="secondary" variant="text" @click="cancel" class="ms-2">
                         {{ tt('Cancel') }}
                     </v-btn>
                 </template>
