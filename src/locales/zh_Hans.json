@@ -1918,7 +1918,12 @@
     "OCR bill recognition is disabled": "OCR 账单识别已禁用",
     "You can drag and drop, paste or click to select a bill or transaction list screenshot": "您可以拖拽、粘贴或点击选择账单或交易列表截图",
     "OCR runs locally on the server. Supports Chinese bill format (e.g. 2月7日 21:49, -100.00).": "OCR 在服务端本地运行，支持中文账单格式（如 2月7日 21:49、-100.00）。",
+    "OCR runs on server(no AI, no tokens). Supports Chinese bill format (e.g. 2月7日 21:49, -100.00).": "OCR 在服务端运行(没有使用AI, 没有使用Tokens)，支持中文账单格式（如 2月7日 21:49、-100.00）。",
     "Recognized transactions (click Add to confirm and edit):": "已识别的交易（点击添加以确认并编辑）：",
+    
+    "You can select a bill or transaction list screenshot to recognize.": "你可以选择一张账单或交易列表的截图进行识别",
+    "Recognize failed":"识别失败",
+    "Recognizing...":"正在识别图片...",    
     "Select Another Image": "选择其他图片",
     "Select Image": "选择图片",
     "No transaction information detected": "未识别到交易信息",
