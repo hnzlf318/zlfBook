@@ -12,6 +12,7 @@ type RecognizedReceiptImageResponse struct {
 	TagIds               []string        `json:"tagIds,omitempty"`
 	ItemIds              []string        `json:"itemIds,omitempty"`
 	Comment              string          `json:"comment,omitempty"`
+	AccountName          string          `json:"account,omitempty"`
 }
 
 // RecognizedReceiptImageListResponse represents a list of recognized transactions (e.g. from OCR bill list)

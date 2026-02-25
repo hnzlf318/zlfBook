@@ -9,6 +9,7 @@ export interface RecognizedReceiptImageResponse {
     readonly tagIds?: string[];
     readonly itemIds?: string[];
     readonly comment?: string;
+    readonly account?: string;
 }
 
 export interface OCRBillRecognitionConfig {

@@ -339,8 +339,10 @@ func (a *LargeLanguageModelsApi) parseRecognizedReceiptImageResponse(c *core.Web
 	}
 
 	if len(recognizedResult.AccountName) > 0 {
-		account, exists := accountMap[recognizedResult.AccountName]
+		// 始终保留原始账户名称，供前端直接展示
+		recognizedReceiptImageResponse.AccountName = recognizedResult.AccountName
 
+		account, exists := accountMap[recognizedResult.AccountName]
 		if exists {
 			recognizedReceiptImageResponse.SourceAccountId = account.AccountId
 		}

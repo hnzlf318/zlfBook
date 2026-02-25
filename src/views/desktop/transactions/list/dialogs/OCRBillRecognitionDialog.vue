@@ -22,11 +22,14 @@
                         <h3 class="pa-2" v-else-if="loading">{{ tt('Loading image...') }}</h3>
                         <h3 class="pa-2" v-else-if="recognizing">{{ tt('Recognizing...') }}</h3>
                     </div>
-                    <v-img v-if="imageSrc" :class="{ 'cursor-pointer': !loading && !recognizing && !isDragOver }"
-                           :src="imageSrc" @click="showOpenImageDialog" max-height="280" />
+                    <v-img v-if="imageSrc"
+                           class="ocr-image"
+                           :class="{ 'cursor-pointer': !loading && !recognizing && !isDragOver }"
+                           :src="imageSrc"
+                           @click="showOpenImageDialog" />
                 </div>
 
-                <div v-else class="w-100">
+                <div v-else class="w-100 ocr-recognized-container">
                     <p class="text-body-2 mb-2">{{ tt('Recognized transactions (click Add to confirm and edit):') }}</p>
                     <v-table density="compact" class="ocr-recognized-table">
                         <thead>
@@ -47,7 +50,7 @@
                                 <td class="ocr-cell-type">{{ getTypeLabel(item.type) }}</td>
                                 <td class="ocr-cell-amount text-end">{{ formatAmount(item.sourceAmount) }}</td>
                                 <td v-if="!hiddenColumns.category" class="ocr-cell-category">{{ getCategoryName(item.categoryId) || '-' }}</td>
-                                <td class="ocr-cell-account">{{ getAccountName(item.sourceAccountId) || '-' }}</td>
+                                <td class="ocr-cell-account">{{ getAccountDisplay(item) }}</td>
                                 <td class="ocr-cell-time text-end">{{ formatTime(item.time) }}</td>
                                 <td v-if="!hiddenColumns.items" class="ocr-cell-items">{{ getItemNames(item.itemIds) || '-' }}</td>
                                 <td v-if="!hiddenColumns.tags" class="ocr-cell-tags">{{ getTagNames(item.tagIds) || '-' }}</td>
@@ -185,6 +188,13 @@ function getAccountName(accountId?: string): string {
     if (!accountId) return '';
     const acc = accountsStore.allAccountsMap[accountId];
     return acc?.name ?? '';
+}
+
+function getAccountDisplay(item: RecognizedReceiptImageResponse): string {
+    if (item.account && item.account.trim().length > 0) {
+        return item.account;
+    }
+    return getAccountName(item.sourceAccountId) || '-';
 }
 
 function getTagNames(tagIds?: string[]): string {
@@ -325,7 +335,13 @@ function formatAmount(amount?: number): string {
 function formatTime(time?: number): string {
     if (time === undefined || time === null) return '-';
     const d = new Date(time * 1000);
-    return d.toLocaleString(undefined, { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const year = d.getFullYear();
+    const month = d.getMonth() + 1;
+    const day = d.getDate();
+    const hour = d.getHours();
+    const minute = d.getMinutes();
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${year}年${month}月${day}日 ${pad(hour)}时${pad(minute)}分`;
 }
 
 function onDragEnter(): void {
@@ -377,36 +393,46 @@ defineExpose({ open, markRowAdded });
     cursor: pointer;
 }
 .ocr-drop-area {
-    min-height: 200px;
+    min-height: 50vh;
 }
 .ocr-card-body {
     min-height: 280px;
     overflow-x: hidden;
 }
+.ocr-image {
+    max-height: 100%;
+    width: 100%;
+    object-fit: contain;
+}
+.ocr-recognized-container {
+    flex: 1 1 auto;
+    overflow-y: auto;
+}
 .ocr-card-actions {
     flex-shrink: 0;
 }
 .ocr-recognized-table {
-    table-layout: auto;
+    table-layout: fixed;
+    width: 100%;
 }
 .ocr-recognized-table th,
 .ocr-recognized-table td {
     white-space: nowrap;
 }
 .ocr-recognized-table .ocr-cell-type {
-    min-width: 4ch;
+    width: 5rem;
 }
 .ocr-recognized-table .ocr-cell-amount {
-    min-width: 6ch;
+    width: 7rem;
 }
 .ocr-recognized-table .ocr-cell-category {
     min-width: 4ch;
 }
 .ocr-recognized-table .ocr-cell-account {
-    min-width: 4ch;
+    width: 10rem;
 }
 .ocr-recognized-table .ocr-cell-time {
-    min-width: 8ch;
+    width: 12rem;
 }
 .ocr-recognized-table .ocr-cell-items {
     min-width: 4ch;
@@ -415,7 +441,7 @@ defineExpose({ open, markRowAdded });
     min-width: 4ch;
 }
 .ocr-recognized-table .ocr-cell-desc {
-    min-width: 4ch;
+    width: auto;
     white-space: normal;
     word-break: break-word;
 }
