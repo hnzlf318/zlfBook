@@ -1,6 +1,6 @@
 <template>
-    <v-dialog  :persistent="loading || recognizing || !!imageFile" v-model="showState" @paste="onPaste" :max-width="dialogMaxWidth || undefined">
-        <v-card class="pa-sm-1 pa-md-2 d-flex flex-column">
+    <v-dialog  :persistent="loading || recognizing || !!imageFile" v-model="showState" @paste="onPaste" :max-width="dialogMaxWidth || undefined" :height="'80vh'">
+        <v-card class="pa-sm-1 pa-md-2 d-flex flex-column h-100">
             <template #title>
                 <h4 class="text-h4">{{ tt('OCR Bill Recognition') }}</h4>
             </template>
@@ -381,6 +381,7 @@ defineExpose({ open, markRowAdded });
 }
 .ocr-card-body {
     min-height: 280px;
+    overflow-x: hidden;
 }
 .ocr-card-actions {
     flex-shrink: 0;
@@ -415,6 +416,8 @@ defineExpose({ open, markRowAdded });
 }
 .ocr-recognized-table .ocr-cell-desc {
     min-width: 4ch;
+    white-space: normal;
+    word-break: break-word;
 }
 .ocr-recognized-table .ocr-cell-actions {
     width: 1%;

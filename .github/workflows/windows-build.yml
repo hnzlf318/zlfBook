@@ -97,6 +97,8 @@ jobs:
           New-Item -ItemType Directory -Path package -Force
           New-Item -ItemType Directory -Path package\data, package\storage, package\log -Force
           Copy-Item ezbookkeeping.exe package\
+          $batContent = "@echo off`r`nezbookkeeping.exe server run %*`r`n"
+          Set-Content -Path "package\ezbookkeeping-server-run.bat" -Value $batContent -Encoding ASCII
           Copy-Item dist package\public -Recurse
           Copy-Item conf package\conf -Recurse
           Copy-Item templates package\templates -Recurse
