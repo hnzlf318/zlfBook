@@ -23,7 +23,7 @@
                         <div class="ocr-field"><span class="ocr-label">{{ tt('Amount') }}：</span><span class="ocr-value">{{ formatAmount(item.sourceAmount) }}</span></div>
                         <div class="ocr-field"><span class="ocr-label">{{ tt('Date') }}：</span><span class="ocr-value">{{ formatTime(item.time) }}</span></div>
                         <div class="ocr-field" v-if="!hiddenFields.category"><span class="ocr-label">{{ tt('Category') }}：</span><span class="ocr-value">{{ getCategoryName(item.categoryId) || '-' }}</span></div>
-                        <div class="ocr-field"><span class="ocr-label">{{ tt('Account') }}：</span><span class="ocr-value">{{ getAccountName(item.sourceAccountId) || '-' }}</span></div>
+                        <div class="ocr-field"><span class="ocr-label">{{ tt('Account') }}：</span><span class="ocr-value">{{ getAccountDisplay(item) }}</span></div>
                         <div class="ocr-field" v-if="!hiddenFields.items && getItemNames(item.itemIds)"><span class="ocr-label">{{ tt('Transaction Items') }}：</span><span class="ocr-value">{{ getItemNames(item.itemIds) }}</span></div>
                         <div class="ocr-field" v-if="!hiddenFields.tags && getTagNames(item.tagIds)"><span class="ocr-label">{{ tt('Tags') }}：</span><span class="ocr-value">{{ getTagNames(item.tagIds) }}</span></div>
                         <div class="ocr-field" v-if="item.comment"><span class="ocr-label">{{ tt('Description') }}：</span><span class="ocr-value ocr-desc">{{ item.comment }}</span></div>
@@ -111,6 +111,13 @@ function getAccountName(accountId?: string): string {
     return acc?.name ?? '-';
 }
 
+function getAccountDisplay(item: RecognizedReceiptImageResponse): string {
+    if (item.account && item.account.trim().length > 0) {
+        return item.account;
+    }
+    return getAccountName(item.sourceAccountId) || '-';
+}
+
 function getTagNames(tagIds?: string[]): string {
     if (!tagIds?.length) return '';
     return tagIds.map(id => transactionTagsStore.allTransactionTagsMap[id]?.name ?? id).join(', ');
@@ -137,7 +144,13 @@ function formatAmount(amount?: number): string {
 function formatTime(time?: number): string {
     if (time === undefined || time === null) return '-';
     const d = new Date(time * 1000);
-    return d.toLocaleString(undefined, { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const year = d.getFullYear();
+    const month = d.getMonth() + 1;
+    const day = d.getDate();
+    const hour = d.getHours();
+    const minute = d.getMinutes();
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${year}-${pad(month)}-${pad(day)} ${pad(hour)}:${pad(minute)}`;
 }
 
 function triggerFileInput(): void {

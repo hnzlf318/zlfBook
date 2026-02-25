@@ -345,7 +345,7 @@ function formatTime(time?: number): string {
     const hour = d.getHours();
     const minute = d.getMinutes();
     const pad = (n: number) => n.toString().padStart(2, '0');
-    return `${year}年${month}月${day}日 ${pad(hour)}时${pad(minute)}分`;
+    return `${year}-${pad(month)}-${pad(day)} ${pad(hour)}:${pad(minute)}`;
 }
 
 function onDragEnter(): void {
