@@ -333,18 +333,18 @@ function onAdd(item: RecognizedReceiptImageResponse, idx: number): void {
 }
 .ocr-preview-img {
     max-width: 100%;
-    max-height: 80vh;
+    max-height: 90vh;
     object-fit: contain;
     border-radius: 8px;
 }
 .ocr-preview-actions {
     display: flex;
     flex-direction: row;
-    gap: 0.5rem;
+    gap: 0.2rem;
     justify-content: space-between;
     align-items: stretch;
     flex-wrap: wrap;
-    padding: 0.25rem 0.75rem;
+    padding: 0.1rem 0.2rem;
 }
 .ocr-preview-recognize-btn {
     margin-top: 0;
