@@ -316,12 +316,14 @@ function onAdd(item: RecognizedReceiptImageResponse, idx: number): void {
 }
 .ocr-add-btn { flex-shrink: 0; }
 .ocr-preview-block {
-    text-align: center;
-    padding: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.5rem;
 }
 .ocr-preview-img {
     max-width: 100%;
-    max-height: 60vh;
+    max-height: 80vh;
     object-fit: contain;
     border-radius: 8px;
 }
