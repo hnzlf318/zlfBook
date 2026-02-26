@@ -327,11 +327,14 @@ function onAdd(item: RecognizedReceiptImageResponse, idx: number): void {
 }
 .ocr-preview-actions {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 0.75rem;
+    justify-content: space-between;
+    align-items: stretch;
+    flex-wrap: wrap;
     padding: 1rem;
 }
 .ocr-preview-recognize-btn {
-    margin-top: 0.25rem;
+    margin-top: 0;
 }
 </style>
