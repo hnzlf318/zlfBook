@@ -1637,16 +1637,17 @@ function addByOCRBillImage(): void {
                         comment: item.comment,
                         noTransactionDraft: true
                     });
-                    if (editResult?.message) {
-                        snackbar.value?.showMessage(editResult.message);
+                    if (editResult) {
+                        if (editResult.message) {
+                            snackbar.value?.showMessage(editResult.message);
+                        }
+                        ocrBillRecognitionDialog.value?.markRowAdded(rowIndex);
+                        reload(false, false);
                     }
-                    reload(false, false);
                 } catch (error) {
                     if (error && !(error as { processed?: boolean }).processed) {
                         snackbar.value?.showError(error as string | { message: string } | { error: import('@/core/api').ErrorResponse });
                     }
-                } finally {
-                    ocrBillRecognitionDialog.value?.markRowAdded(rowIndex);
                 }
             }
         }).catch(() => {

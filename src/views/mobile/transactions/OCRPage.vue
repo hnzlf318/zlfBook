@@ -248,12 +248,20 @@ function reset(): void {
 }
 
 function onPageAfterIn(): void {
+    // 如果是首次进入且没有识别结果，则自动触发选图
     if (!recognizedList.value.length && !recognizing.value && !previewOpened.value) {
         triggerFileInput();
     }
+
+    // 从“添加交易”页返回后，如果有标记的 OCR 行索引，则禁用对应行的“添加”按钮
+    const rowIndex = transactionsStore.lastOCRAddedRowIndex;
+    if (rowIndex !== null && rowIndex !== undefined) {
+        addedRowIndices.value = new Set(addedRowIndices.value).add(rowIndex);
+        transactionsStore.setLastOCRAddedRowIndex(null);
+    }
 }
 
-function buildAddUrl(item: RecognizedReceiptImageResponse): string {
+function buildAddUrl(item: RecognizedReceiptImageResponse, rowIndex?: number): string {
     const params = new URLSearchParams();
     if (item.time != null) params.set('time', String(item.time));
     if (item.type != null) params.set('type', String(item.type));
@@ -265,14 +273,13 @@ function buildAddUrl(item: RecognizedReceiptImageResponse): string {
     if (item.tagIds?.length) params.set('tagIds', item.tagIds.join(','));
     if (item.itemIds?.length) params.set('itemIds', item.itemIds.join(','));
     if (item.comment) params.set('comment', item.comment);
+    if (rowIndex !== undefined) params.set('fromOCRRowIndex', String(rowIndex));
     params.set('noTransactionDraft', 'true');
     return `/transaction/add?${params.toString()}`;
 }
 
 function onAdd(item: RecognizedReceiptImageResponse, idx: number): void {
-    if (addedRowIndices.value.has(idx)) return;
-    addedRowIndices.value = new Set(addedRowIndices.value).add(idx);
-    const url = buildAddUrl(item);
+    const url = buildAddUrl(item, idx);
     props.f7router.navigate(url);
 }
 </script>

@@ -131,6 +131,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     const transactionsNextTimeId = ref<number>(0);
     const transactionListStateInvalid = ref<boolean>(true);
     const transactionReconciliationStatementStateInvalid = ref<boolean>(true);
+    const lastOCRAddedRowIndex = ref<number | null>(null);
 
     const allFilterCategoryIds = computed<Record<string, boolean>>(() => splitItemsToMap(transactionsFilter.value.categoryIds, ','));
     const allFilterAccountIds = computed<Record<string, boolean>>(() => splitItemsToMap(transactionsFilter.value.accountIds, ','));
@@ -1436,6 +1437,10 @@ export const useTransactionsStore = defineStore('transactions', () => {
         }
     }
 
+    function setLastOCRAddedRowIndex(rowIndex: number | null): void {
+        lastOCRAddedRowIndex.value = rowIndex;
+    }
+
     return {
         // states
         transactionDraft,
@@ -1444,6 +1449,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
         transactionsNextTimeId,
         transactionListStateInvalid,
         transactionReconciliationStatementStateInvalid,
+        lastOCRAddedRowIndex,
         // computed states
         allFilterCategoryIds,
         allFilterAccountIds,
@@ -1482,6 +1488,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
         uploadTransactionPicture,
         removeUnusedTransactionPicture,
         getTransactionPictureUrl,
-        collapseMonthInTransactionList
+        collapseMonthInTransactionList,
+        setLastOCRAddedRowIndex
     };
 });

@@ -965,6 +965,16 @@ function save(): void {
                     showToast('You have saved this transaction');
                 }
 
+                // 如果是从移动端 OCR 识别页面跳转过来的“添加交易”，在成功保存后标记对应 OCR 行索引
+                if (pageTypeAndMode?.type === TransactionEditPageType.Transaction
+                    && mode.value === TransactionEditPageMode.Add
+                    && query['fromOCRRowIndex'] !== undefined) {
+                    const idx = parseInt(query['fromOCRRowIndex']);
+                    if (!Number.isNaN(idx)) {
+                        transactionsStore.setLastOCRAddedRowIndex(idx);
+                    }
+                }
+
                 if (mode.value === TransactionEditPageMode.Add && query['noTransactionDraft'] !== 'true' && !addByTemplateId.value && !duplicateFromId.value) {
                     transactionsStore.clearTransactionDraft();
                 }
