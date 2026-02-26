@@ -291,7 +291,7 @@ function onAdd(item: RecognizedReceiptImageResponse, idx: number): void {
 }
 .ocr-result-item {
     position: relative;
-    padding: 16px;
+    padding: 3px;
     border-bottom: 1px solid var(--f7-list-strong-border-color);
 }
 .ocr-result-item:last-child {
@@ -299,7 +299,7 @@ function onAdd(item: RecognizedReceiptImageResponse, idx: number): void {
 }
 .ocr-fields {
     text-align: left;
-    padding-right: 80px;
+    padding-right: 50px;
 }
 .ocr-field {
     display: flex;
