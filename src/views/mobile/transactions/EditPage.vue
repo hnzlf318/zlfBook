@@ -5,6 +5,8 @@
             <f7-nav-title :title="tt(title)"></f7-nav-title>
             <f7-nav-right :class="{ 'navbar-compact-icons': true, 'disabled': loading }" v-if="mode !== TransactionEditPageMode.View || transaction.type !== TransactionType.ModifyBalance">
                 <f7-link icon-f7="ellipsis" @click="showMoreActionSheet = true"></f7-link>
+                <f7-link v-if="pageTypeAndMode?.type === TransactionEditPageType.Transaction && mode === TransactionEditPageMode.Add"
+                         icon-f7="doc_text" :title="tt('OCR Bill Recognition')" @click="addByOCRBillImage"></f7-link>
                 <f7-link v-if="pageTypeAndMode?.type === TransactionEditPageType.Transaction && mode === TransactionEditPageMode.View && transaction.type !== TransactionType.ModifyBalance && transaction.editable"
                          icon-f7="pencil" :title="tt('Edit')" @click="enterEditMode"></f7-link>
                 <f7-link v-if="pageTypeAndMode?.type === TransactionEditPageType.Transaction && mode === TransactionEditPageMode.Edit"
@@ -1187,6 +1189,10 @@ function cancelEditMode(): void {
 
 function duplicate(withTime?: boolean, withGeoLocation?: boolean): void {
     props.f7router.navigate(`/transaction/add?id=${transaction.value.id}&type=${transaction.value.type}&withTime=${withTime ?? false}&withGeoLocation=${withGeoLocation ?? false}`);
+}
+
+function addByOCRBillImage(): void {
+    props.f7router.navigate('/transaction/ocr');
 }
 
 function onPageAfterIn(): void {
