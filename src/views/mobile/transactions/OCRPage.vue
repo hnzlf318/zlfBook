@@ -14,6 +14,28 @@
             <input ref="imageInputRef" type="file" class="display-none" :accept="SUPPORTED_IMAGE_EXTENSIONS" @change="onFileChange" />
         </f7-block>
 
+        <f7-popup v-model:opened="previewOpened">
+            <f7-page>
+                <f7-navbar :title="tt('OCR Bill Recognition')"></f7-navbar>
+                <f7-block class="ocr-preview-block">
+                    <img v-if="previewImageSrc" :src="previewImageSrc" class="ocr-preview-img" />
+                </f7-block>
+                <f7-block class="ocr-preview-actions">
+                    <f7-button large outline @click="onPreviewSelectImage">
+                        {{ tt('Select Image') }}
+                    </f7-button>
+                    <f7-button large fill class="ocr-preview-recognize-btn"
+                               :disabled="recognizing || !previewFile"
+                               @click="onPreviewRecognize">
+                        {{ recognizing ? tt('Recognizing...') : tt('Recognize') }}
+                    </f7-button>
+                    <f7-button large color="gray" outline @click="onPreviewCancel">
+                        {{ tt('Cancel') }}
+                    </f7-button>
+                </f7-block>
+            </f7-page>
+        </f7-popup>
+
         <f7-block v-else>
             <p class="ocr-hint">{{ tt('Recognized transactions (click Add to confirm and edit):') }}</p>
             <div class="list strong inset dividers">
@@ -74,6 +96,9 @@ const transactionsStore = useTransactionsStore();
 const imageInputRef = useTemplateRef<HTMLInputElement>('imageInputRef');
 
 const recognizing = ref(false);
+const previewOpened = ref(false);
+const previewImageSrc = ref<string | null>(null);
+const previewFile = ref<File | null>(null);
 const recognizedList = ref<RecognizedReceiptImageResponse[]>([]);
 const addedRowIndices = ref<Set<number>>(new Set());
 
@@ -163,6 +188,15 @@ function onFileChange(event: Event): void {
     if (!el?.files?.length || !el.files[0]) return;
     const file = el.files[0] as File;
     el.value = '';
+    if (previewImageSrc.value) {
+        URL.revokeObjectURL(previewImageSrc.value);
+    }
+    previewFile.value = file;
+    previewImageSrc.value = URL.createObjectURL(file);
+    previewOpened.value = true;
+}
+
+function recognizeFile(file: File): void {
     recognizing.value = true;
     Promise.all([
         accountsStore.loadAllAccounts({ force: false }),
@@ -183,9 +217,30 @@ function onFileChange(event: Event): void {
     });
 }
 
+function onPreviewRecognize(): void {
+    if (!previewFile.value || recognizing.value) return;
+    recognizeFile(previewFile.value);
+    previewOpened.value = false;
+}
+
+function onPreviewSelectImage(): void {
+    if (recognizing.value) return;
+    triggerFileInput();
+}
+
+function onPreviewCancel(): void {
+    previewOpened.value = false;
+    if (previewImageSrc.value) {
+        URL.revokeObjectURL(previewImageSrc.value);
+    }
+    previewImageSrc.value = null;
+    previewFile.value = null;
+}
+
 function reset(): void {
     recognizedList.value = [];
     addedRowIndices.value = new Set();
+    onPreviewCancel();
 }
 
 function buildAddUrl(item: RecognizedReceiptImageResponse): string {
@@ -260,4 +315,23 @@ function onAdd(item: RecognizedReceiptImageResponse, idx: number): void {
     bottom: 16px;
 }
 .ocr-add-btn { flex-shrink: 0; }
+.ocr-preview-block {
+    text-align: center;
+    padding: 1rem;
+}
+.ocr-preview-img {
+    max-width: 100%;
+    max-height: 60vh;
+    object-fit: contain;
+    border-radius: 8px;
+}
+.ocr-preview-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+}
+.ocr-preview-recognize-btn {
+    margin-top: 0.25rem;
+}
 </style>
