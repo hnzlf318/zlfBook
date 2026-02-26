@@ -314,6 +314,7 @@ function reset(): void {
     imageFile.value = null;
     imageSrc.value = undefined;
     addedRowIndices.value = new Set();
+    showOpenImageDialog();
 }
 
 function cancel(): void {
