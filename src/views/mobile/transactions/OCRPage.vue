@@ -338,13 +338,18 @@ function onAdd(item: RecognizedReceiptImageResponse, idx: number): void {
     border-radius: 8px;
 }
 .ocr-preview-actions {
+    --f7-block-margin-vertical: 0;
+    --f7-block-padding-horizontal: 0;
+    --f7-block-padding-vertical: 0;
+    margin: 0;
+    padding: 0;
+    background: transparent;
     display: flex;
     flex-direction: row;
     gap: 0.2rem;
     justify-content: space-between;
     align-items: stretch;
-    flex-wrap: wrap;
-    padding: 0.1rem 0.2rem;
+    flex-wrap: nowrap;
 }
 .ocr-preview-recognize-btn {
     margin-top: 0;
