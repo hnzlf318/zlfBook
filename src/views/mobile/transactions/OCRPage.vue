@@ -3,8 +3,12 @@
         <f7-navbar>
             <f7-nav-left :back-link="tt('Back')"></f7-nav-left>
             <f7-nav-title>{{ tt('OCR Bill Recognition') }}</f7-nav-title>
-            <f7-nav-right v-if="recognizedList.length">
-                <f7-link icon-f7="photo" :title="tt('Select Another Image')" @click="reset"></f7-link>
+            <f7-nav-right class="navbar-compact-icons">
+                <f7-link v-if="recognizedList.length"
+                         icon-f7="photo"
+                         :title="tt('Select Another Image')"
+                         @click="reset">
+                </f7-link>
             </f7-nav-right>
         </f7-navbar>
 
@@ -336,11 +340,11 @@ function onAdd(item: RecognizedReceiptImageResponse, idx: number): void {
 .ocr-preview-actions {
     display: flex;
     flex-direction: row;
-    gap: 0.75rem;
+    gap: 0.5rem;
     justify-content: space-between;
     align-items: stretch;
     flex-wrap: wrap;
-    padding: 1rem;
+    padding: 0.25rem 0.75rem;
 }
 .ocr-preview-recognize-btn {
     margin-top: 0;
