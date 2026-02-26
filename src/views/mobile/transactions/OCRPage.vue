@@ -36,7 +36,7 @@
             </f7-page>
         </f7-popup>
 
-        <f7-block v-else>
+        <f7-block v-if="recognizedList.length">
             <p class="ocr-hint">{{ tt('Recognized transactions (click Add to confirm and edit):') }}</p>
             <div class="list strong inset dividers">
                 <div v-for="(item, idx) in recognizedList" :key="idx" class="ocr-result-item">
