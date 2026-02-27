@@ -204,16 +204,25 @@ i.icon.la, i.icon.las, i.icon.lab {
     left: 0;
     right: 0;
     z-index: 5000;
+    height: 40px; /* 减小 navbar 高度 */
+    min-height: 40px;
+}
+
+/* 减小底部 navbar 内部元素的 padding，保持内容居中 */
+.page.page-navbar-bottom > .navbar .navbar-inner {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    min-height: 40px;
 }
 
 .page.page-navbar-bottom > .page-content {
     padding-top: 0; /* 取消原本为顶部 navbar 预留的空白 */
-    padding-bottom: calc(var(--f7-navbar-height, 44px) + 2px); /* 给底部 navbar 预留少量空隙，避免紧贴 */
+    padding-bottom: 42px; /* 给底部 navbar (40px) 预留少量空隙，避免紧贴 */
 }
 
-/* 交易列表页底部筛选工具条，放在底部 navbar 的正上方 */
+/* 交易列表页底部筛选工具条，放在底部 navbar 的正上方，减小间距 */
 .page.page-navbar-bottom .toolbar-bottom.transaction-list-toolbar {
-    bottom: var(--f7-navbar-height, 44px);
+    bottom: 40px; /* navbar 高度 40px */
 }
 
 .ebk-sheet-title {
