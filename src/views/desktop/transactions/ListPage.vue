@@ -604,8 +604,10 @@
                                                             :text="tt('None')"
                                                             v-if="!transaction.tagIds || !transaction.tagIds.length"/>
                                                 </td>
-                                                <td class="transaction-table-column-description text-truncate">
-                                                    {{ transaction.comment }}
+                                                <td class="transaction-table-column-description">
+                                                    <div class="transaction-table-description-text">
+                                                        {{ transaction.comment }}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         </tbody>

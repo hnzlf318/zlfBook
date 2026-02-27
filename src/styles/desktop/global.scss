@@ -325,6 +325,26 @@ html[dir="rtl"] .bidirectional-switch {
     width: 100%;
 }
 
+.transaction-table-column-account {
+    width: 140px;
+    max-width: 140px;
+    white-space: nowrap;
+}
+
+.transaction-table-column-description {
+    max-width: 100%;
+}
+
+.transaction-table-description-text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    word-break: break-word;
+}
+
 .tab-text-truncate.v-tab > .v-btn__content {
     overflow-x: hidden;
 }
