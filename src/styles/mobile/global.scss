@@ -207,7 +207,8 @@ i.icon.la, i.icon.las, i.icon.lab {
 }
 
 .page.page-navbar-bottom > .page-content {
-    padding-bottom: var(--f7-navbar-height, 44px);
+    padding-top: 0; /* 取消原本为顶部 navbar 预留的空白 */
+    padding-bottom: calc(var(--f7-navbar-height, 44px) + 12px); /* 给底部 navbar + 按钮预留空间，避免重叠 */
 }
 
 .ebk-sheet-title {
