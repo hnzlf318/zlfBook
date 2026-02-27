@@ -3,7 +3,7 @@
         <v-col cols="12">
             <v-card>
                 <v-layout>
-                    <v-navigation-drawer :permanent="alwaysShowNav" v-model="showNav">
+                    <v-navigation-drawer :permanent="alwaysShowNav" v-model="showNav" width="210">
                         <div class="mx-6 my-4">
                             <span class="text-subtitle-2">{{ tt('Net assets') }}</span>
                             <p class="account-statistic-item-value text-income text-truncate mt-1 mb-3">
