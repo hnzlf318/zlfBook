@@ -204,6 +204,13 @@ body,
     opacity: 1 !important;
 }
 
+// 👉 Navigation Drawer - Set width to 60% of current width
+// This affects the navigation drawer in transaction list, statistics, and other pages
+.v-navigation-drawer {
+    width: 60% !important;
+    max-width: 60% !important;
+}
+
 // 👉 VMessages
 .v-messages {
     color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
