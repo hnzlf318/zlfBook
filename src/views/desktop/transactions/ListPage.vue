@@ -3,7 +3,7 @@
         <v-col cols="12">
             <v-card>
                 <v-layout>
-                    <v-navigation-drawer :permanent="alwaysShowNav" v-model="showNav">
+                    <v-navigation-drawer :permanent="alwaysShowNav" v-model="showNav" width="230">
                         <div class="mx-6 my-4">
                             <btn-vertical-group :disabled="loading" :buttons="TransactionListPageType.values().map(item => {
                                 return {
