@@ -260,8 +260,9 @@ function markRowAdded(rowIndex: number): void {
 async function onAddClick(item: RecognizedReceiptImageResponse, rowIndex: number): Promise<void> {
     if (addedRowIndices.value.has(rowIndex)) return;
     if (openOptions?.onAdd) {
+        // 调用 onAdd 回调，由回调内部决定是否调用 markRowAdded
+        // 例如在 ListPage.vue 中，只有在成功保存交易时才会调用 markRowAdded
         await openOptions.onAdd(item, rowIndex);
-        markRowAdded(rowIndex);
         return;
     }
     addTransaction(item);
