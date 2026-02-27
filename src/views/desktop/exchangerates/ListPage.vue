@@ -3,7 +3,7 @@
         <v-col cols="12">
             <v-card>
                 <v-layout>
-                    <v-navigation-drawer :permanent="alwaysShowNav" v-model="showNav" :width="navDrawerWidth">
+                    <v-navigation-drawer :permanent="alwaysShowNav" v-model="showNav">
                         <div class="mx-6 my-4">
                             <span class="text-subtitle-2">{{ tt('Data source') }}</span>
                             <p class="text-body-1 mt-1 mb-3">
@@ -55,7 +55,6 @@
                             </span>
                         </div>
                     </v-navigation-drawer>
-                    <div v-if="alwaysShowNav && showNav" class="ez-drawer-resize-handle" @pointerdown="onNavDrawerResizePointerDown"></div>
                     <v-main>
                         <v-window class="d-flex flex-grow-1 disable-tab-transition w-100-window-container" v-model="activeTab">
                             <v-window-item value="exchangeRatesPage">
@@ -174,7 +173,6 @@ import { NumeralSystem } from '@/core/numeral.ts';
 import type { LocalizedLatestExchangeRate } from '@/models/exchange_rate.ts';
 
 import logger from '@/lib/logger.ts';
-import { useResizableNavigationDrawerWidth } from '@/lib/ui/desktopResizableDrawer.ts';
 
 import {
     mdiRefresh,
@@ -213,12 +211,6 @@ const updating = ref<boolean>(false);
 const customExchangeRateRemoving = ref<Record<string, boolean>>({});
 const alwaysShowNav = ref<boolean>(mdAndUp.value);
 const showNav = ref<boolean>(mdAndUp.value);
-const { drawerWidth: navDrawerWidth, onResizePointerDown: onNavDrawerResizePointerDown } = useResizableNavigationDrawerWidth({
-    storageKey: 'ebk_desktop_side_drawer_width',
-    defaultWidth: 360,
-    minWidth: 260,
-    maxWidthRatio: 0.6
-});
 
 const numeralSystem = computed<NumeralSystem>(() => getCurrentNumeralSystemType());
 

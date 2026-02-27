@@ -3,7 +3,7 @@
         <v-col cols="12">
             <v-card>
                 <v-layout>
-                    <v-navigation-drawer :permanent="alwaysShowNav" v-model="showNav" :width="navDrawerWidth">
+                    <v-navigation-drawer :permanent="alwaysShowNav" v-model="showNav">
                         <div class="mx-6 my-4">
                             <span class="text-subtitle-2">{{ tt('Total items') }}</span>
                             <p class="transaction-items-statistic-item-value mt-1">
@@ -32,7 +32,6 @@
                             </template>
                         </v-tabs>
                     </v-navigation-drawer>
-                    <div v-if="alwaysShowNav && showNav" class="ez-drawer-resize-handle" @pointerdown="onNavDrawerResizePointerDown"></div>
                     <v-main>
                         <v-window class="d-flex flex-grow-1 disable-tab-transition w-100-window-container" v-model="activeTab">
                             <v-window-item value="itemListPage">
@@ -333,7 +332,6 @@ import { useI18n } from '@/locales/helpers.ts';
 import { useItemListPageBase } from '@/views/base/items/ItemListPageBase.ts';
 
 import { useTransactionItemsStore } from '@/stores/transactionItem.ts';
-import { useResizableNavigationDrawerWidth } from '@/lib/ui/desktopResizableDrawer.ts';
 
 import { DEFAULT_ITEM_GROUP_ID } from '@/consts/item.ts';
 
@@ -398,12 +396,6 @@ const updating = ref<boolean>(false);
 const activeTab = ref<string>('itemListPage');
 const alwaysShowNav = ref<boolean>(display.mdAndUp.value);
 const showNav = ref<boolean>(display.mdAndUp.value);
-const { drawerWidth: navDrawerWidth, onResizePointerDown: onNavDrawerResizePointerDown } = useResizableNavigationDrawerWidth({
-    storageKey: 'ebk_desktop_side_drawer_width',
-    defaultWidth: 360,
-    minWidth: 260,
-    maxWidthRatio: 0.6
-});
 const itemUpdating = ref<Record<string, boolean>>({});
 const itemHiding = ref<Record<string, boolean>>({});
 const itemMoving = ref<Record<string, boolean>>({});
