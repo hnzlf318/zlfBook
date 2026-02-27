@@ -1880,7 +1880,7 @@ init(props);
 }
 
 .transaction-table .transaction-table-column-account {
-    min-width: 160px;
+    min-width: 20px;
 }
 
 .transaction-table .transaction-table-column-tags {
