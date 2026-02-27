@@ -3,7 +3,7 @@
         <v-col cols="12">
             <v-card>
                 <v-layout>
-                    <v-navigation-drawer :permanent="alwaysShowNav" v-model="showNav">
+                    <v-navigation-drawer :permanent="alwaysShowNav" v-model="showNav" :width="navDrawerWidth">
                         <div class="mx-6 my-4">
                             <btn-vertical-group :disabled="loading" :buttons="[
                                 { name: tt('Categorical Analysis'), value: StatisticsAnalysisType.CategoricalAnalysis },
@@ -57,6 +57,7 @@
                             </v-tab>
                         </v-tabs>
                     </v-navigation-drawer>
+                    <div v-if="alwaysShowNav && showNav" class="ez-drawer-resize-handle" @pointerdown="onNavDrawerResizePointerDown"></div>
                     <v-main>
                         <v-window class="d-flex flex-grow-1 disable-tab-transition w-100-window-container" v-model="activeTab">
                             <v-window-item value="statisticsPage">
@@ -520,6 +521,7 @@ import { useStatisticsTransactionPageBase } from '@/views/base/statistics/Statis
 import { useAccountsStore } from '@/stores/account.ts';
 import { useTransactionCategoriesStore } from '@/stores/transactionCategory.ts';
 import { type TransactionStatisticsPartialFilter, useStatisticsStore } from '@/stores/statistics.ts';
+import { useResizableNavigationDrawerWidth } from '@/lib/ui/desktopResizableDrawer.ts';
 
 import type { TypeAndDisplayName } from '@/core/base.ts';
 import { type TextualYearMonth, type TimeRangeAndDateType, DateRangeScene, DateRange } from '@/core/datetime.ts';
@@ -651,6 +653,12 @@ const initing = ref<boolean>(true);
 const filterKeyword = ref<string>('');
 const alwaysShowNav = ref<boolean>(display.mdAndUp.value);
 const showNav = ref<boolean>(display.mdAndUp.value);
+const { drawerWidth: navDrawerWidth, onResizePointerDown: onNavDrawerResizePointerDown } = useResizableNavigationDrawerWidth({
+    storageKey: 'ebk_desktop_side_drawer_width',
+    defaultWidth: 360,
+    minWidth: 260,
+    maxWidthRatio: 0.6
+});
 const showCustomDateRangeDialog = ref<boolean>(false);
 const showCustomMonthRangeDialog = ref<boolean>(false);
 const showFilterAccountDialog = ref<boolean>(false);

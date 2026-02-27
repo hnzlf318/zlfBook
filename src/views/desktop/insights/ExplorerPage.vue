@@ -3,7 +3,7 @@
         <v-col cols="12">
             <v-card>
                 <v-layout>
-                    <v-navigation-drawer :permanent="alwaysShowNav" v-model="showNav">
+                    <v-navigation-drawer :permanent="alwaysShowNav" v-model="showNav" :width="navDrawerWidth">
                         <div class="mx-6 my-4">
                             <btn-vertical-group :disabled="loading || updating" :buttons="allTabs" v-model="activeTab" />
                         </div>
@@ -30,6 +30,7 @@
                             </template>
                         </v-tabs>
                     </v-navigation-drawer>
+                    <div v-if="alwaysShowNav && showNav" class="ez-drawer-resize-handle" @pointerdown="onNavDrawerResizePointerDown"></div>
                     <v-main>
                         <v-card variant="flat" min-height="800">
                             <template #title>
@@ -221,6 +222,7 @@ import {
 } from '@/lib/datetime.ts';
 
 import { generateRandomUUID } from '@/lib/misc.ts';
+import { useResizableNavigationDrawerWidth } from '@/lib/ui/desktopResizableDrawer.ts';
 
 import {
     mdiMenu,
@@ -300,6 +302,12 @@ const clientSessionId = ref<string>('');
 const isCurrentExplorerModified = ref<boolean>(false);
 const alwaysShowNav = ref<boolean>(display.mdAndUp.value);
 const showNav = ref<boolean>(display.mdAndUp.value);
+const { drawerWidth: navDrawerWidth, onResizePointerDown: onNavDrawerResizePointerDown } = useResizableNavigationDrawerWidth({
+    storageKey: 'ebk_desktop_side_drawer_width',
+    defaultWidth: 360,
+    minWidth: 260,
+    maxWidthRatio: 0.6
+});
 const activeTab = ref<ExplorerPageTabType>('query');
 const showCustomDateRangeDialog = ref<boolean>(false);
 

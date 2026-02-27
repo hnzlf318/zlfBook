@@ -3,7 +3,7 @@
         <v-col cols="12">
             <v-card>
                 <v-layout>
-                    <v-navigation-drawer :permanent="alwaysShowNav" v-model="showNav">
+                    <v-navigation-drawer :permanent="alwaysShowNav" v-model="showNav" :width="navDrawerWidth">
                         <div class="mx-6 my-4">
                             <span class="text-subtitle-2">{{ tt('Net assets') }}</span>
                             <p class="account-statistic-item-value text-income text-truncate mt-1 mb-3">
@@ -45,6 +45,7 @@
                             </v-tab>
                         </v-tabs>
                     </v-navigation-drawer>
+                    <div v-if="alwaysShowNav && showNav" class="ez-drawer-resize-handle" @pointerdown="onNavDrawerResizePointerDown"></div>
                     <v-main>
                         <v-window class="d-flex flex-grow-1 disable-tab-transition w-100-window-container" v-model="activeTab">
                             <v-window-item value="accountPage">
@@ -330,6 +331,7 @@ import { useAccountListPageBase } from '@/views/base/accounts/AccountListPageBas
 
 import { useSettingsStore } from '@/stores/setting.ts';
 import { useAccountsStore } from '@/stores/account.ts';
+import { useResizableNavigationDrawerWidth } from '@/lib/ui/desktopResizableDrawer.ts';
 
 import { DateRange, DateRangeScene, type LocalizedDateRange, type TimeRangeAndDateType } from '@/core/datetime.ts';
 import { AccountType, AccountCategory } from '@/core/account.ts';
@@ -402,6 +404,12 @@ const activeSubAccount = ref<Record<string, string>>({});
 const accountToShowReconciliationStatement = ref<Account | null>(null);
 const alwaysShowNav = ref<boolean>(display.mdAndUp.value);
 const showNav = ref<boolean>(display.mdAndUp.value);
+const { drawerWidth: navDrawerWidth, onResizePointerDown: onNavDrawerResizePointerDown } = useResizableNavigationDrawerWidth({
+    storageKey: 'ebk_desktop_side_drawer_width',
+    defaultWidth: 360,
+    minWidth: 260,
+    maxWidthRatio: 0.6
+});
 const showAccountsIncludedInTotalDialog = ref<boolean>(false);
 const showCustomDateRangeDialog = ref<boolean>(false);
 

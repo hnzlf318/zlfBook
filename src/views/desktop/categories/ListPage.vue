@@ -3,7 +3,7 @@
         <v-col cols="12">
             <v-card>
                 <v-layout>
-                    <v-navigation-drawer ref="navbar" :permanent="alwaysShowNav" v-model="showNav">
+                    <v-navigation-drawer ref="navbar" :permanent="alwaysShowNav" v-model="showNav" :width="navDrawerWidth">
                         <div class="mx-6 my-4">
                             <btn-vertical-group :disabled="loading" :buttons="[
                                 { name: tt('Expense'), value: CategoryType.Expense },
@@ -29,6 +29,7 @@
                             </template>
                         </v-tabs>
                     </v-navigation-drawer>
+                    <div v-if="alwaysShowNav && showNav" class="ez-drawer-resize-handle" @pointerdown="onNavDrawerResizePointerDown"></div>
                     <v-main>
                         <v-window class="d-flex flex-grow-1 disable-tab-transition w-100-window-container" v-model="activeTab">
                             <v-window-item value="categoryPage">
@@ -206,6 +207,7 @@ import { useI18n } from '@/locales/helpers.ts';
 import { useCategoryListPageBase } from '@/views/base/categories/CategoryListPageBase.ts';
 
 import { useTransactionCategoriesStore } from '@/stores/transactionCategory.ts';
+import { useResizableNavigationDrawerWidth } from '@/lib/ui/desktopResizableDrawer.ts';
 
 import { CategoryType } from '@/core/category.ts';
 import type { TransactionCategory } from '@/models/transaction_category.ts';
@@ -251,6 +253,12 @@ const displayOrderModified = ref<boolean>(false);
 const cardMinHeight = ref<number>(680);
 const alwaysShowNav = ref<boolean>(display.mdAndUp.value);
 const showNav = ref<boolean>(display.mdAndUp.value);
+const { drawerWidth: navDrawerWidth, onResizePointerDown: onNavDrawerResizePointerDown } = useResizableNavigationDrawerWidth({
+    storageKey: 'ebk_desktop_side_drawer_width',
+    defaultWidth: 360,
+    minWidth: 260,
+    maxWidthRatio: 0.6
+});
 const showHidden = ref<boolean>(false);
 const showPresetDialog = ref<boolean>(false);
 
