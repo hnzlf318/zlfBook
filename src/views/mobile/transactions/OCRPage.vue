@@ -1,5 +1,5 @@
 <template>
-    <f7-page @page:afterin="onPageAfterIn">
+    <f7-page class="page-navbar-bottom" @page:afterin="onPageAfterIn">
         <f7-navbar>
             <f7-nav-left :back-link="tt('Back')"></f7-nav-left>
             <f7-nav-title>{{ tt('OCR Bill Recognition') }}</f7-nav-title>

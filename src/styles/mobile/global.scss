@@ -196,6 +196,20 @@ i.icon.la, i.icon.las, i.icon.lab {
     color: var(--f7-input-error-text-color)
 }
 
+/* 将带 page-navbar-bottom 类的页面的 navbar 放到底部，而不是顶部固定条 */
+.page.page-navbar-bottom > .navbar {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 5000;
+}
+
+.page.page-navbar-bottom > .page-content {
+    padding-bottom: var(--f7-navbar-height, 44px);
+}
+
 .ebk-sheet-title {
     font-size: var(--ebk-sheet-title-font-size);
 }

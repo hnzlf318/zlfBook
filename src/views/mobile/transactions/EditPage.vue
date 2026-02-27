@@ -1,5 +1,5 @@
 <template>
-    <f7-page @page:afterin="onPageAfterIn" @page:beforeout="onPageBeforeOut">
+    <f7-page class="page-navbar-bottom" @page:afterin="onPageAfterIn" @page:beforeout="onPageBeforeOut">
         <f7-navbar>
             <f7-nav-left :class="{ 'disabled': loading }" :back-link="tt('Back')"></f7-nav-left>
             <f7-nav-title :title="tt(title)"></f7-nav-title>
