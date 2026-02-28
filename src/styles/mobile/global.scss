@@ -235,6 +235,19 @@ i.icon.la, i.icon.las, i.icon.lab {
     bottom: 40px; /* navbar 高度 40px */
 }
 
+/* 统计页面底部工具条，放在底部 navbar 的正上方 */
+.page.page-navbar-bottom .toolbar-bottom.statistics-toolbar {
+    bottom: 40px; /* navbar 高度 40px */
+}
+
+/* 自定义图标图片样式 */
+.navbar-icon-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    display: block;
+}
+
 .ebk-sheet-title {
     font-size: var(--ebk-sheet-title-font-size);
 }

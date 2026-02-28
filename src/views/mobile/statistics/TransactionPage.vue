@@ -1,5 +1,5 @@
 <template>
-    <f7-page ptr @ptr:refresh="reload" @page:afterin="onPageAfterIn">
+    <f7-page class="page-navbar-bottom" ptr @ptr:refresh="reload" @page:afterin="onPageAfterIn">
         <f7-navbar>
             <f7-nav-left :class="{ 'disabled': loading }" :back-link="tt('Back')"></f7-nav-left>
             <f7-nav-title>
@@ -289,7 +289,7 @@
             </f7-list>
         </f7-popover>
 
-        <f7-toolbar tabbar bottom :class="{ 'toolbar-item-auto-size': true, 'disabled': loading }">
+        <f7-toolbar tabbar bottom :class="{ 'toolbar-item-auto-size': true, 'statistics-toolbar': true, 'disabled': loading }">
             <f7-link :class="{ 'disabled': reloading || !canShiftDateRange }" @click="shiftDateRange(-1)">
                 <f7-icon class="icon-with-direction" f7="arrow_left_square"></f7-icon>
             </f7-link>

@@ -5,9 +5,9 @@
             <f7-nav-title>{{ tt('OCR Bill Recognition') }}</f7-nav-title>
             <f7-nav-right class="navbar-compact-icons">
                 <f7-link v-if="recognizedList.length"
-                         icon-f7="photo"
                          :title="tt('Select Another Image')"
-                         @click="reset">
+                         @click="triggerFileInput">
+                    <img src="/img/select-image-icon.png" alt="Select Image" class="navbar-icon-img" />
                 </f7-link>
             </f7-nav-right>
         </f7-navbar>
@@ -370,11 +370,4 @@ function onAdd(item: RecognizedReceiptImageResponse, idx: number): void {
     border-radius: 8px;
 }
 
-/* 自定义图标图片样式 */
-.navbar-icon-img {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
-    display: block;
-}
 </style>

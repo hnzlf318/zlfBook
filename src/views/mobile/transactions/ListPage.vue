@@ -17,7 +17,9 @@
             </f7-nav-title>
             <f7-nav-right :class="{ 'navbar-compact-icons': true, 'disabled': loading }">
                 <f7-link icon-f7="search" @click="toggleSearchbar"></f7-link>
-                <f7-link icon-f7="doc_text" :class="{ 'disabled': !canAddTransaction }" @click="addByOCRBillImage"></f7-link>
+                <f7-link :class="{ 'disabled': !canAddTransaction }" @click="addByOCRBillImage">
+                    <img src="/img/select-image-icon.png" alt="OCR Bill Recognition" class="navbar-icon-img" />
+                </f7-link>
                 <f7-link icon-f7="plus" :class="{ 'disabled': !canAddTransaction }" @click="add"></f7-link>
             </f7-nav-right>
 
