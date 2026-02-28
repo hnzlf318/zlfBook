@@ -1916,7 +1916,7 @@
     "AI can make mistakes. Check important info.": "AI 可能会出错。请检查重要信息。",
     "OCR Bill Recognition": "OCR 账单识别",
     "OCR bill recognition is disabled": "OCR 账单识别已禁用",
-    "Recognized Image": "要识别的图片",
+    "Recognized Image": "识别的图片",
     "You can drag and drop, paste or click to select a bill or transaction list screenshot": "您可以拖拽、粘贴或点击选择账单或交易列表截图",
     "OCR runs locally on the server. Supports Chinese bill format (e.g. 2月7日 21:49, -100.00).": "OCR 在服务端本地运行，支持中文账单格式（如 2月7日 21:49、-100.00）。",
     "OCR runs on server(no AI, no tokens). Supports Chinese bill format (e.g. 2月7日 21:49, -100.00).": "OCR 在服务端运行(没有使用AI, 没有使用Tokens)，支持中文账单格式（如 2月7日 21:49、-100.00）。",
