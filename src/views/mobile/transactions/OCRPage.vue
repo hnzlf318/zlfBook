@@ -12,10 +12,12 @@
             </f7-nav-right>
         </f7-navbar>
 
+        <!-- 文件选择 input 需要一直存在，否则识别出结果后右下角按钮无法触发选图 -->
+        <input ref="imageInputRef" type="file" class="display-none" :accept="SUPPORTED_IMAGE_EXTENSIONS" @change="onFileChange" />
+
         <f7-block v-if="!recognizedList.length" class="ocr-select-block">
             <p class="ocr-hint">{{ tt('You can select a bill or transaction list screenshot to recognize.') }}</p>
             <f7-button large fill @click="triggerFileInput">{{ recognizing ? tt('Recognizing...') : tt('Select Image') }}</f7-button>
-            <input ref="imageInputRef" type="file" class="display-none" :accept="SUPPORTED_IMAGE_EXTENSIONS" @change="onFileChange" />
         </f7-block>
 
         <f7-popup v-model:opened="previewOpened">
