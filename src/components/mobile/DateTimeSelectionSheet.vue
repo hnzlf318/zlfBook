@@ -134,10 +134,7 @@ import { NumeralSystem } from '@/core/numeral.ts';
 
 import { isDefined } from '@/lib/common.ts';
 import {
-    getHourIn12HourFormat,
-    getCurrentUnixTime,
-    getAMOrPM,
-    getCombinedDateAndTimeValues
+    getCurrentUnixTime
 } from '@/lib/datetime.ts';
 
 const props = defineProps<{
@@ -159,15 +156,8 @@ const {
 const { showToast } = useI18nUIComponents();
 
 const {
-    is24Hour,
-    isHourTwoDigits,
-    isMinuteTwoDigits,
-    isSecondTwoDigits,
-    isMeridiemIndicatorFirst,
-    meridiemItems,
     getLocalDatetimeFromSameDateTimeOfUnixTime,
     getUnixTimeFromSameDateTimeOfLocalDatetime,
-    getDisplayTimeValue,
     generateAllHours,
     generateAllMinutesOrSeconds
 } = useDateTimeSelectionBase();
@@ -191,7 +181,6 @@ const dateTimePickerContainerHeight = ref<number | undefined>(undefined);
 const dateTimePickerItemHeight = ref<number | undefined>(undefined);
 
 const isDarkMode = computed<boolean>(() => environmentsStore.framework7DarkMode || false);
-const numeralSystem = computed<NumeralSystem>(() => getCurrentNumeralSystemType());
 
 // 生成年份选项（当前年份前后各50年）
 function generateAllYears(count: number): TimePickerValue[] {
@@ -344,6 +333,57 @@ const currentSecond = computed<string>({
         dateTime.value = new Date(year, month, day, hour, minute, second);
     }
 });
+
+function switchMode(): void {
+    if (mode.value === 'time') {
+        mode.value = 'date';
+    } else {
+        mode.value = 'time';
+    }
+}
+
+function onDatePickerUpdate(value: Date | Date[] | null): void {
+    if (value instanceof Date) {
+        if (dateTime.value) {
+            const merged = new Date(value.getFullYear(), value.getMonth(), value.getDate(),
+                dateTime.value.getHours(), dateTime.value.getMinutes(), dateTime.value.getSeconds());
+            dateTime.value = merged;
+        } else {
+            dateTime.value = value;
+        }
+    }
+}
+
+function getSelectedDateFromPicker(): Date | null {
+    if (!datetimepicker.value?.getModelValue) return null;
+    const value = datetimepicker.value.getModelValue();
+    if (value instanceof Date) {
+        return value;
+    }
+    if (datePickerContainer.value) {
+        const selectedCell = datePickerContainer.value.querySelector('.dp__cell_selected, .dp__active_date, .dp__cell[aria-selected="true"]');
+        if (selectedCell) {
+            const dateAttr = selectedCell.getAttribute('data-date') || selectedCell.getAttribute('aria-label');
+            if (dateAttr) {
+                const date = new Date(dateAttr);
+                if (!isNaN(date.getTime())) {
+                    return date;
+                }
+                const match = dateAttr.match(/(\d{4})-(\d{2})-(\d{2})/);
+                if (match && match[1] && match[2] && match[3]) {
+                    const year = parseInt(match[1], 10);
+                    const month = parseInt(match[2], 10) - 1;
+                    const day = parseInt(match[3], 10);
+                    const date = new Date(year, month, day);
+                    if (!isNaN(date.getTime())) {
+                        return date;
+                    }
+                }
+            }
+        }
+    }
+    return null;
+}
 
 function setCurrentTime(): void {
     dateTime.value = getLocalDatetimeFromSameDateTimeOfUnixTime(getCurrentUnixTime(), props.timezoneUtcOffset);
