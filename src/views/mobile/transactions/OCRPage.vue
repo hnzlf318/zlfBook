@@ -26,14 +26,14 @@
                     </f7-nav-left>
                     <f7-nav-title>{{ tt('Recognized Image') }}</f7-nav-title>
                     <f7-nav-right class="navbar-compact-icons">
-                        <f7-link icon-f7="magnifyingglass"
-                                :disabled="recognizing || !previewFile"
+                        <f7-link :disabled="recognizing || !previewFile"
                                 :title="recognizing ? tt('Recognizing...') : tt('Recognize')"
                                 @click="onPreviewRecognize">
+                            <img src="/img/recognize-icon.png" alt="Recognize" class="navbar-icon-img" />
                         </f7-link>
-                        <f7-link icon-f7="photo"
-                                :title="tt('Select Image')"
+                        <f7-link :title="tt('Select Image')"
                                 @click="onPreviewSelectImage">
+                            <img src="/img/select-image-icon.png" alt="Select Image" class="navbar-icon-img" />
                         </f7-link>
                     </f7-nav-right>
                 </f7-navbar>
@@ -368,5 +368,13 @@ function onAdd(item: RecognizedReceiptImageResponse, idx: number): void {
     max-height: 100vh;
     object-fit: contain;
     border-radius: 8px;
+}
+
+/* 自定义图标图片样式 */
+.navbar-icon-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    display: block;
 }
 </style>
