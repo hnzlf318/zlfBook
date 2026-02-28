@@ -220,6 +220,16 @@ i.icon.la, i.icon.las, i.icon.lab {
     padding-bottom: 42px; /* 给底部 navbar (40px) 预留少量空隙，避免紧贴 */
 }
 
+/* 将 subnavbar（搜索框）移到 navbar 上方，与工具条重叠，但显示在工具条上层 */
+.page.page-navbar-bottom .subnavbar {
+    position: fixed;
+    top: auto;
+    bottom: 40px; /* navbar 高度 40px，搜索框在 navbar 上方 */
+    left: 0;
+    right: 0;
+    z-index: 5001; /* 比 navbar (5000) 和工具条更高，显示在最上层 */
+}
+
 /* 交易列表页底部筛选工具条，放在底部 navbar 的正上方，减小间距 */
 .page.page-navbar-bottom .toolbar-bottom.transaction-list-toolbar {
     bottom: 40px; /* navbar 高度 40px */
