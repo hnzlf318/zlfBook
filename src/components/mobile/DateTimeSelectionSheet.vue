@@ -179,12 +179,11 @@ const dateTimePickerItemHeight = ref<number | undefined>(undefined);
 
 const isDarkMode = computed<boolean>(() => environmentsStore.framework7DarkMode || false);
 
-// 生成年份选项（当前年份前后各50年）
+// 生成年份选项（固定范围：1900-2100，避免因日期变化导致列表重新生成）
 function generateAllYears(count: number): TimePickerValue[] {
     const ret: TimePickerValue[] = [];
-    const currentYear = dateTime.value.getFullYear();
-    const startYear = currentYear - 50;
-    const endYear = currentYear + 50;
+    const startYear = 1900;
+    const endYear = 2100;
     
     for (let i = 0; i < count; i++) {
         for (let j = startYear; j <= endYear; j++) {
@@ -586,7 +585,12 @@ function onPickerColumnScroll(itemsClass: string, itemClass: string, scrollEnd: 
                     break;
             }
 
-            if (itemsIndex === '0' || itemsIndex === '2') {
+            // 对于年份选择器，只在滚动结束时对齐，不进行自动重置
+            if (itemClass === 'picker-year') {
+                if (scrollEnd) {
+                    scrollToSelectedItem(itemsClass, itemClass, value);
+                }
+            } else if (itemsIndex === '0' || itemsIndex === '2') {
                 if (scrollEnd) {
                     scrollToSelectedItem(itemsClass, itemClass, value);
                 } else {
