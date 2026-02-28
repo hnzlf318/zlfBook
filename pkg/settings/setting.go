@@ -280,8 +280,9 @@ type MultiLanguageContentConfig struct {
 // Config represents the global setting config
 type Config struct {
 	// Global
-	Mode        SystemMode
-	WorkingPath string
+	Mode          SystemMode
+	WorkingPath   string
+	ConfigFilePath string
 
 	// Server
 	Protocol Scheme
@@ -366,6 +367,13 @@ type Config struct {
 	// Cron
 	EnableRemoveExpiredTokens        bool
 	EnableCreateScheduledTransaction bool
+
+	// Backup
+	EnableDailyEmailBackup         bool
+	DailyEmailBackupToAddress      string
+	DailyEmailBackupHour           uint32
+	DailyEmailBackupMinute         uint32
+	DailyEmailBackupRetentionDays  uint32
 
 	// Secret
 	SecretKeyNoSet                        bool
@@ -470,6 +478,7 @@ func LoadConfiguration(configFilePath string) (*Config, error) {
 
 	config := &Config{}
 	config.WorkingPath, err = getWorkingPath()
+	config.ConfigFilePath = configFilePath
 
 	if err != nil {
 		return nil, err
@@ -542,6 +551,12 @@ func LoadConfiguration(configFilePath string) (*Config, error) {
 	}
 
 	err = loadCronConfiguration(config, cfgFile, "cron")
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = loadBackupConfiguration(config, cfgFile, "backup")
 
 	if err != nil {
 		return nil, err
@@ -992,6 +1007,26 @@ func loadDuplicateCheckerConfiguration(config *Config, configFile *ini.File, sec
 func loadCronConfiguration(config *Config, configFile *ini.File, sectionName string) error {
 	config.EnableRemoveExpiredTokens = getConfigItemBoolValue(configFile, sectionName, "enable_remove_expired_tokens", false)
 	config.EnableCreateScheduledTransaction = getConfigItemBoolValue(configFile, sectionName, "enable_create_scheduled_transaction", false)
+
+	return nil
+}
+
+func loadBackupConfiguration(config *Config, configFile *ini.File, sectionName string) error {
+	config.EnableDailyEmailBackup = getConfigItemBoolValue(configFile, sectionName, "enable_email_backup", false)
+	config.DailyEmailBackupToAddress = getConfigItemStringValue(configFile, sectionName, "backup_email")
+	config.DailyEmailBackupHour = getConfigItemUint32Value(configFile, sectionName, "backup_hour", 2)
+
+	if config.DailyEmailBackupHour > 23 {
+		config.DailyEmailBackupHour = 2
+	}
+
+	config.DailyEmailBackupMinute = getConfigItemUint32Value(configFile, sectionName, "backup_minute", 0)
+
+	if config.DailyEmailBackupMinute > 59 {
+		config.DailyEmailBackupMinute = 0
+	}
+
+	config.DailyEmailBackupRetentionDays = getConfigItemUint32Value(configFile, sectionName, "backup_retention_days", 30)
 
 	return nil
 }

@@ -30,3 +30,16 @@ var CreateScheduledTransactionJob = &CronJob{
 		return services.Transactions.CreateScheduledTransactions(c, time.Now().Unix(), c.GetInterval())
 	},
 }
+
+// EmailBackupJob represents the cron job which periodically send database/config backup via email
+var EmailBackupJob = &CronJob{
+	Name:        "EmailBackup",
+	Description: "Daily create database and config backup and send it via email.",
+	// The actual hour will be adjusted according to configuration when registering the job
+	Period: CronJobFixedHourPeriod{
+		Hour: 2,
+	},
+	Run: func(c *core.CronContext) error {
+		return services.Backup.SendDailyEmailBackup(c)
+	},
+}

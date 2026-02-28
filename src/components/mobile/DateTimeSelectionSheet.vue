@@ -589,7 +589,7 @@ function onPickerColumnScroll(itemsClass: string, itemClass: string, scrollEnd: 
             if (itemClass === 'picker-year') {
                 if (scrollEnd) {
                     scrollToSelectedItem(itemsClass, itemClass, value);
-                }
+            }
             } else if (itemsIndex === '0' || itemsIndex === '2') {
                 if (scrollEnd) {
                     scrollToSelectedItem(itemsClass, itemClass, value);

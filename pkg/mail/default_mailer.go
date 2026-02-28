@@ -57,6 +57,14 @@ func (m *DefaultMailer) SendMail(message *MailMessage) error {
 	mailMessage.SetHeader("Subject", message.Subject)
 	mailMessage.SetBody("text/html", message.Body)
 
+	for _, attachmentPath := range message.Attachments {
+		if attachmentPath == "" {
+			continue
+		}
+
+		mailMessage.Attach(attachmentPath)
+	}
+
 	err := m.dialer.DialAndSend(mailMessage)
 
 	return err

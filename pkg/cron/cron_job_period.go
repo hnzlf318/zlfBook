@@ -18,9 +18,10 @@ type CronJobIntervalPeriod struct {
 	Interval time.Duration
 }
 
-// CronJobFixedHourPeriod represents the period of execution at fixed hour
+// CronJobFixedHourPeriod represents the period of execution at fixed hour and minute
 type CronJobFixedHourPeriod struct {
-	Hour uint32
+	Hour   uint32
+	Minute uint32
 }
 
 // CronJobEvery15MinutesPeriod represents the period of execution at every 15 minutes
@@ -53,7 +54,7 @@ func (p CronJobFixedHourPeriod) ToJobDefinition() gocron.JobDefinition {
 	return gocron.DailyJob(
 		1,
 		gocron.NewAtTimes(
-			gocron.NewAtTime(uint(p.Hour), 0, 0),
+			gocron.NewAtTime(uint(p.Hour), uint(p.Minute), 0),
 		),
 	)
 }

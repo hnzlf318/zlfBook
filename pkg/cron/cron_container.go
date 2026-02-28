@@ -84,6 +84,16 @@ func (c *CronJobSchedulerContainer) registerAllJobs(ctx core.Context, config *se
 	if config.EnableCreateScheduledTransaction {
 		Container.registerIntervalJob(ctx, CreateScheduledTransactionJob)
 	}
+
+	if config.EnableDailyEmailBackup {
+		// clone the template job to avoid modifying the global instance
+		job := *EmailBackupJob
+		job.Period = CronJobFixedHourPeriod{
+			Hour:   config.DailyEmailBackupHour,
+			Minute: config.DailyEmailBackupMinute,
+		}
+		Container.registerIntervalJob(ctx, &job)
+	}
 }
 
 func (c *CronJobSchedulerContainer) registerIntervalJob(ctx core.Context, job *CronJob) {
