@@ -213,13 +213,18 @@ function onKeydown(index: number, event: KeyboardEvent): void {
     }
 
     if (event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Del') {
-        for (let i = index; i < codes.value.length; i++) {
-            codes.value[i]!.value = '';
-            setInputType(i);
-        }
-
-        if (event.code === 'Backspace') {
-            setPreviousFocus(index);
+        // 如果当前输入框有内容，清空当前框
+        if (codes.value[index]!.value) {
+            codes.value[index]!.value = '';
+            setInputType(index);
+            // 清空当前框后，光标保持在当前位置
+        } else {
+            // 如果当前框为空，移到上一个输入框并清空
+            if (index > 0) {
+                codes.value[index - 1]!.value = '';
+                setInputType(index - 1);
+                setPreviousFocus(index);
+            }
         }
 
         event.preventDefault();
@@ -277,9 +282,16 @@ function onInputEvent(index: number, event: Event): void {
     const value = target.value ?? '';
 
     if (value.length === 0) {
+        // 检查当前框之前是否有值
+        const hadValue = codes.value[index]!.value !== '';
         codes.value[index]!.value = '';
         setInputType(index);
-        setPreviousFocus(index);
+        
+        // 如果之前有值，说明是删除了当前框的内容，光标保持在当前位置
+        // 如果之前没有值，说明是删除了空框，应该移到上一个框
+        if (!hadValue && index > 0) {
+            setPreviousFocus(index);
+        }
         return;
     }
 

@@ -244,12 +244,6 @@ function onPreviewCancel(): void {
     previewFile.value = null;
 }
 
-function reset(): void {
-    recognizedList.value = [];
-    addedRowIndices.value = new Set();
-    onPreviewCancel();
-}
-
 function onPageAfterIn(): void {
     // 如果是首次进入且没有识别结果，则自动触发选图
     if (!recognizedList.value.length && !recognizing.value && !previewOpened.value) {
