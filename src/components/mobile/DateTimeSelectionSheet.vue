@@ -130,8 +130,6 @@ import { type TimePickerValue, useDateTimeSelectionBase } from '@/components/bas
 
 import { useEnvironmentsStore } from '@/stores/environment.ts';
 
-import { NumeralSystem } from '@/core/numeral.ts';
-
 import { isDefined } from '@/lib/common.ts';
 import {
     getCurrentUnixTime
@@ -150,8 +148,7 @@ const emit = defineEmits<{
 }>();
 
 const {
-    tt,
-    getCurrentNumeralSystemType
+    tt
 } = useI18n();
 const { showToast } = useI18nUIComponents();
 
