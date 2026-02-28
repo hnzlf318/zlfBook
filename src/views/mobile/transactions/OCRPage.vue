@@ -4,8 +4,8 @@
             <f7-nav-left :back-link="tt('Back')"></f7-nav-left>
             <f7-nav-title>{{ tt('OCR Bill Recognition') }}</f7-nav-title>
             <f7-nav-right class="navbar-compact-icons">
-                <f7-link v-if="recognizedList.length"
-                         :title="tt('Select Another Image')"
+                <f7-link :class="{ 'disabled': recognizing }"
+                         :title="recognizedList.length ? tt('Select Another Image') : tt('Select Image')"
                          @click="triggerFileInput">
                     <img src="/img/select-image-icon.png" alt="Select Image" class="navbar-icon-img" />
                 </f7-link>
