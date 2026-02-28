@@ -6,7 +6,9 @@
             <f7-nav-right :class="{ 'navbar-compact-icons': true, 'disabled': loading }" v-if="mode !== TransactionEditPageMode.View || transaction.type !== TransactionType.ModifyBalance">
                 <f7-link icon-f7="ellipsis" @click="showMoreActionSheet = true"></f7-link>
                 <f7-link v-if="pageTypeAndMode?.type === TransactionEditPageType.Transaction && mode === TransactionEditPageMode.Add"
-                         icon-f7="doc_text" :title="tt('OCR Bill Recognition')" @click="addByOCRBillImage"></f7-link>
+                         :title="tt('OCR Bill Recognition')" @click="addByOCRBillImage">
+                    <img src="/img/select-image-icon.png" alt="OCR Bill Recognition" class="navbar-icon-img" />
+                </f7-link>
                 <f7-link v-if="pageTypeAndMode?.type === TransactionEditPageType.Transaction && mode === TransactionEditPageMode.View && transaction.type !== TransactionType.ModifyBalance && transaction.editable"
                          icon-f7="pencil" :title="tt('Edit')" @click="enterEditMode"></f7-link>
                 <f7-link v-if="pageTypeAndMode?.type === TransactionEditPageType.Transaction && mode === TransactionEditPageMode.Edit"
