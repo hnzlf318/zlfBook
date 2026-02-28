@@ -1208,6 +1208,15 @@ function addByOCRBillImage(): void {
 function onPageAfterIn(): void {
     routeBackOnError(props.f7router, loadingError);
 
+    // 如果是添加模式，且不是从OCR页面跳转过来的，自动打开金额输入面板
+    if (mode.value === TransactionEditPageMode.Add 
+        && pageTypeAndMode?.type === TransactionEditPageType.Transaction
+        && !query['fromOCRRowIndex']) {
+        // 延迟一下，确保页面完全加载后再打开面板
+        setTimeout(() => {
+            showSourceAmountSheet.value = true;
+        }, 100);
+    }
 }
 
 function onPageBeforeOut(): void {
