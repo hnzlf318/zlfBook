@@ -24,7 +24,97 @@
                 </date-time-picker>
             </div>
             <div class="block no-margin no-padding padding-vertical-half" v-show="mode === 'time'">
-                <div class="time-picker-container" ref="timePickerContainer">
+                <div class="date-time-picker-container" ref="dateTimePickerContainer">
+                    <div class="picker picker-inline picker-3d">
+                        <div class="picker-columns">
+                            <!-- 年份选择器 -->
+                            <div class="picker-column">
+                                <div class="picker-items picker-items-year"
+                                     @scroll="onPickerColumnScroll('picker-items-year', 'picker-year', false)"
+                                     @scrollend="onPickerColumnScroll('picker-items-year', 'picker-year', true)">
+                                    <div :class="{ 'picker-item': true, 'picker-year': true, 'picker-item-selected': currentYear === item.value }"
+                                         :key="`${item.itemsIndex}_${item.value}`" :data-items-index="item.itemsIndex" :data-value="item.value"
+                                         @click="currentYear = item.value; scrollToSelectedItem('picker-items-year', 'picker-year', item.value)"
+                                         v-for="item in yearItems">
+                                        <span :style="getTimerPickerItemStyle(item.value, currentYear, item.itemsIndex, yearItems)">{{ item.value }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="picker-column picker-column-divider">-</div>
+                            <!-- 月份选择器 -->
+                            <div class="picker-column">
+                                <div class="picker-items picker-items-month"
+                                     @scroll="onPickerColumnScroll('picker-items-month', 'picker-month', false)"
+                                     @scrollend="onPickerColumnScroll('picker-items-month', 'picker-month', true)">
+                                    <div :class="{ 'picker-item': true, 'picker-month': true, 'picker-item-selected': currentMonth === item.value }"
+                                         :key="`${item.itemsIndex}_${item.value}`" :data-items-index="item.itemsIndex" :data-value="item.value"
+                                         @click="currentMonth = item.value; scrollToSelectedItem('picker-items-month', 'picker-month', item.value)"
+                                         v-for="item in monthItems">
+                                        <span :style="getTimerPickerItemStyle(item.value, currentMonth, item.itemsIndex, monthItems)">{{ item.value }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="picker-column picker-column-divider">-</div>
+                            <!-- 日期选择器 -->
+                            <div class="picker-column">
+                                <div class="picker-items picker-items-day"
+                                     @scroll="onPickerColumnScroll('picker-items-day', 'picker-day', false)"
+                                     @scrollend="onPickerColumnScroll('picker-items-day', 'picker-day', true)">
+                                    <div :class="{ 'picker-item': true, 'picker-day': true, 'picker-item-selected': currentDay === item.value }"
+                                         :key="`${item.itemsIndex}_${item.value}`" :data-items-index="item.itemsIndex" :data-value="item.value"
+                                         @click="currentDay = item.value; scrollToSelectedItem('picker-items-day', 'picker-day', item.value)"
+                                         v-for="item in dayItems">
+                                        <span :style="getTimerPickerItemStyle(item.value, currentDay, item.itemsIndex, dayItems)">{{ item.value }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="picker-column picker-column-divider" style="margin-left: 8px;">&nbsp;</div>
+                            <!-- 小时选择器 -->
+                            <div class="picker-column">
+                                <div class="picker-items picker-items-hour"
+                                     @scroll="onPickerColumnScroll('picker-items-hour', 'picker-hour', false)"
+                                     @scrollend="onPickerColumnScroll('picker-items-hour', 'picker-hour', true)">
+                                    <div :class="{ 'picker-item': true, 'picker-hour': true, 'picker-item-selected': currentHour === item.value }"
+                                         :key="`${item.itemsIndex}_${item.value}`" :data-items-index="item.itemsIndex" :data-value="item.value"
+                                         @click="currentHour = item.value; scrollToSelectedItem('picker-items-hour', 'picker-hour', item.value)"
+                                         v-for="item in hourItems">
+                                        <span :style="getTimerPickerItemStyle(item.value, currentHour, item.itemsIndex, hourItems)">{{ item.value }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="picker-column picker-column-divider">:</div>
+                            <!-- 分钟选择器 -->
+                            <div class="picker-column">
+                                <div class="picker-items picker-items-minute"
+                                     @scroll="onPickerColumnScroll('picker-items-minute', 'picker-minute', false)"
+                                     @scrollend="onPickerColumnScroll('picker-items-minute', 'picker-minute', true)">
+                                    <div :class="{ 'picker-item': true, 'picker-minute': true, 'picker-item-selected': currentMinute === item.value }"
+                                         :key="`${item.itemsIndex}_${item.value}`" :data-items-index="item.itemsIndex" :data-value="item.value"
+                                         @click="currentMinute = item.value; scrollToSelectedItem('picker-items-minute', 'picker-minute', item.value)"
+                                         v-for="item in minuteItems">
+                                        <span :style="getTimerPickerItemStyle(item.value, currentMinute, item.itemsIndex, minuteItems)">{{ item.value }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="picker-column picker-column-divider">:</div>
+                            <!-- 秒选择器 -->
+                            <div class="picker-column">
+                                <div class="picker-items picker-items-second"
+                                     @scroll="onPickerColumnScroll('picker-items-second', 'picker-second', false)"
+                                     @scrollend="onPickerColumnScroll('picker-items-second', 'picker-second', true)">
+                                    <div :class="{ 'picker-item': true, 'picker-second': true, 'picker-item-selected': currentSecond === item.value }"
+                                         :key="`${item.itemsIndex}_${item.value}`" :data-items-index="item.itemsIndex" :data-value="item.value"
+                                         @click="currentSecond = item.value; scrollToSelectedItem('picker-items-second', 'picker-second', item.value)"
+                                         v-for="item in secondItems">
+                                        <span :style="getTimerPickerItemStyle(item.value, currentSecond, item.itemsIndex, secondItems)">{{ item.value }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="picker-center-highlight"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
                     <div class="picker picker-inline picker-3d">
                         <div class="picker-columns">
                             <div class="picker-column" v-if="!is24Hour && isMeridiemIndicatorFirst">
@@ -117,8 +207,6 @@ import {
     getCombinedDateAndTimeValues
 } from '@/lib/datetime.ts';
 
-type DateTimePickerType = InstanceType<typeof DateTimePicker>;
-
 const props = defineProps<{
     modelValue: number;
     timezoneUtcOffset: number;
@@ -153,9 +241,11 @@ const {
 
 const environmentsStore = useEnvironmentsStore();
 
+type DateTimePickerType = InstanceType<typeof DateTimePicker>;
+
 const datetimepicker = useTemplateRef<DateTimePickerType>('datetimepicker');
-const timePickerContainer = useTemplateRef<HTMLDivElement>('timePickerContainer');
 const datePickerContainer = useTemplateRef<HTMLDivElement>('datePickerContainer');
+const dateTimePickerContainer = useTemplateRef<HTMLDivElement>('dateTimePickerContainer');
 
 let resetTimePickerItemPositionItemsClass: string | undefined = undefined;
 let resetTimePickerItemPositionItemClass: string | undefined = undefined;
@@ -164,105 +254,169 @@ let resetTimePickerItemPositionCheckedFrames: number | undefined = undefined;
 
 const mode = ref<string>(props.initMode || 'time');
 const dateTime = ref<Date>(getLocalDatetimeFromSameDateTimeOfUnixTime(props.modelValue || getCurrentUnixTime(), props.timezoneUtcOffset));
-const timePickerContainerHeight = ref<number | undefined>(undefined);
-const timePickerItemHeight = ref<number | undefined>(undefined);
+const dateTimePickerContainerHeight = ref<number | undefined>(undefined);
+const dateTimePickerItemHeight = ref<number | undefined>(undefined);
 
 const isDarkMode = computed<boolean>(() => environmentsStore.framework7DarkMode || false);
 const numeralSystem = computed<NumeralSystem>(() => getCurrentNumeralSystemType());
 
-const hourItems = computed<TimePickerValue[]>(() => generateAllHours(3, isHourTwoDigits.value));
-const minuteItems = computed<TimePickerValue[]>(() => generateAllMinutesOrSeconds(3, isMinuteTwoDigits.value));
-const secondItems = computed<TimePickerValue[]>(() => generateAllMinutesOrSeconds(3, isSecondTwoDigits.value));
+// 生成年份选项（当前年份前后各50年）
+function generateAllYears(count: number): TimePickerValue[] {
+    const ret: TimePickerValue[] = [];
+    const currentYear = dateTime.value.getFullYear();
+    const startYear = currentYear - 50;
+    const endYear = currentYear + 50;
+    
+    for (let i = 0; i < count; i++) {
+        for (let j = startYear; j <= endYear; j++) {
+            ret.push({
+                value: j.toString(),
+                itemsIndex: i
+            });
+        }
+    }
+    return ret;
+}
 
-const currentMeridiemIndicator = computed<string>({
+// 生成月份选项（01-12）
+function generateAllMonths(count: number): TimePickerValue[] {
+    const ret: TimePickerValue[] = [];
+    for (let i = 0; i < count; i++) {
+        for (let j = 1; j <= 12; j++) {
+            ret.push({
+                value: j.toString().padStart(2, '0'),
+                itemsIndex: i
+            });
+        }
+    }
+    return ret;
+}
+
+// 生成日期选项（01-31，根据年月动态计算）
+function generateAllDays(count: number): TimePickerValue[] {
+    const ret: TimePickerValue[] = [];
+    const year = parseInt(currentYear.value);
+    const month = parseInt(currentMonth.value) - 1; // 月份从0开始
+    const daysInMonth = new Date(year, month + 1, 0).getDate(); // 获取该月的天数
+    
+    for (let i = 0; i < count; i++) {
+        for (let j = 1; j <= daysInMonth; j++) {
+            ret.push({
+                value: j.toString().padStart(2, '0'),
+                itemsIndex: i
+            });
+        }
+    }
+    return ret;
+}
+
+const yearItems = computed<TimePickerValue[]>(() => generateAllYears(3));
+const monthItems = computed<TimePickerValue[]>(() => generateAllMonths(3));
+const dayItems = computed<TimePickerValue[]>(() => generateAllDays(3));
+const hourItems = computed<TimePickerValue[]>(() => generateAllHours(3, true)); // 强制使用24小时制，两位数字
+const minuteItems = computed<TimePickerValue[]>(() => generateAllMinutesOrSeconds(3, true)); // 强制两位数字
+const secondItems = computed<TimePickerValue[]>(() => generateAllMinutesOrSeconds(3, true)); // 强制两位数字
+
+// 年份、月份、日期选择器
+const currentYear = computed<string>({
     get: () => {
-        return getAMOrPM(dateTime.value.getHours())
+        return dateTime.value.getFullYear().toString();
     },
     set: (value: string) => {
-        dateTime.value = getCombinedDateAndTimeValues(dateTime.value, numeralSystem.value, currentHour.value, currentMinute.value, currentSecond.value, value, is24Hour.value);
+        const year = parseInt(value);
+        const month = parseInt(currentMonth.value) - 1;
+        const day = parseInt(currentDay.value);
+        const hour = parseInt(currentHour.value);
+        const minute = parseInt(currentMinute.value);
+        const second = parseInt(currentSecond.value);
+        dateTime.value = new Date(year, month, day, hour, minute, second);
     }
 });
+
+const currentMonth = computed<string>({
+    get: () => {
+        return (dateTime.value.getMonth() + 1).toString().padStart(2, '0');
+    },
+    set: (value: string) => {
+        const year = parseInt(currentYear.value);
+        const month = parseInt(value) - 1;
+        const day = parseInt(currentDay.value);
+        const hour = parseInt(currentHour.value);
+        const minute = parseInt(currentMinute.value);
+        const second = parseInt(currentSecond.value);
+        // 检查日期是否有效，如果无效则使用该月的最后一天
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const validDay = Math.min(day, daysInMonth);
+        dateTime.value = new Date(year, month, validDay, hour, minute, second);
+    }
+});
+
+const currentDay = computed<string>({
+    get: () => {
+        return dateTime.value.getDate().toString().padStart(2, '0');
+    },
+    set: (value: string) => {
+        const year = parseInt(currentYear.value);
+        const month = parseInt(currentMonth.value) - 1;
+        const day = parseInt(value);
+        const hour = parseInt(currentHour.value);
+        const minute = parseInt(currentMinute.value);
+        const second = parseInt(currentSecond.value);
+        dateTime.value = new Date(year, month, day, hour, minute, second);
+    }
+});
+
+// 时间选择器（24小时制，两位数字）
 const currentHour = computed<string>({
     get: () => {
-        return getDisplayTimeValue(is24Hour.value ? dateTime.value.getHours() : getHourIn12HourFormat(dateTime.value.getHours()), isHourTwoDigits.value);
+        return dateTime.value.getHours().toString().padStart(2, '0');
     },
     set: (value: string) => {
-        dateTime.value = getCombinedDateAndTimeValues(dateTime.value, numeralSystem.value, value, currentMinute.value, currentSecond.value, currentMeridiemIndicator.value, is24Hour.value);
+        const year = parseInt(currentYear.value);
+        const month = parseInt(currentMonth.value) - 1;
+        const day = parseInt(currentDay.value);
+        const hour = parseInt(value);
+        const minute = parseInt(currentMinute.value);
+        const second = parseInt(currentSecond.value);
+        dateTime.value = new Date(year, month, day, hour, minute, second);
     }
 });
+
 const currentMinute = computed<string>({
     get: () => {
-        return getDisplayTimeValue(dateTime.value.getMinutes(), isMinuteTwoDigits.value);
+        return dateTime.value.getMinutes().toString().padStart(2, '0');
     },
     set: (value: string) => {
-        dateTime.value = getCombinedDateAndTimeValues(dateTime.value, numeralSystem.value, currentHour.value, value, currentSecond.value, currentMeridiemIndicator.value, is24Hour.value);
+        const year = parseInt(currentYear.value);
+        const month = parseInt(currentMonth.value) - 1;
+        const day = parseInt(currentDay.value);
+        const hour = parseInt(currentHour.value);
+        const minute = parseInt(value);
+        const second = parseInt(currentSecond.value);
+        dateTime.value = new Date(year, month, day, hour, minute, second);
     }
 });
+
 const currentSecond = computed<string>({
     get: () => {
-        return getDisplayTimeValue(dateTime.value.getSeconds(), isSecondTwoDigits.value);
+        return dateTime.value.getSeconds().toString().padStart(2, '0');
     },
     set: (value: string) => {
-        dateTime.value = getCombinedDateAndTimeValues(dateTime.value, numeralSystem.value, currentHour.value, currentMinute.value, value, currentMeridiemIndicator.value, is24Hour.value);
+        const year = parseInt(currentYear.value);
+        const month = parseInt(currentMonth.value) - 1;
+        const day = parseInt(currentDay.value);
+        const hour = parseInt(currentHour.value);
+        const minute = parseInt(currentMinute.value);
+        const second = parseInt(value);
+        dateTime.value = new Date(year, month, day, hour, minute, second);
     }
 });
-
-function switchMode(): void {
-    if (mode.value === 'time') {
-        mode.value = 'date';
-    } else {
-        mode.value = 'time';
-    }
-}
-
-function onDatePickerUpdate(value: Date | Date[] | null): void {
-    if (value instanceof Date) {
-        if (dateTime.value) {
-            const merged = new Date(value.getFullYear(), value.getMonth(), value.getDate(),
-                dateTime.value.getHours(), dateTime.value.getMinutes(), dateTime.value.getSeconds());
-            dateTime.value = merged;
-        } else {
-            dateTime.value = value;
-        }
-    }
-}
-
-function getSelectedDateFromPicker(): Date | null {
-    if (!datetimepicker.value?.getModelValue) return null;
-    const value = datetimepicker.value.getModelValue();
-    if (value instanceof Date) {
-        return value;
-    }
-    if (datePickerContainer.value) {
-        const selectedCell = datePickerContainer.value.querySelector('.dp__cell_selected, .dp__active_date, .dp__cell[aria-selected="true"]');
-        if (selectedCell) {
-            const dateAttr = selectedCell.getAttribute('data-date') || selectedCell.getAttribute('aria-label');
-            if (dateAttr) {
-                const date = new Date(dateAttr);
-                if (!isNaN(date.getTime())) {
-                    return date;
-                }
-                const match = dateAttr.match(/(\d{4})-(\d{2})-(\d{2})/);
-                if (match && match[1] && match[2] && match[3]) {
-                    const year = parseInt(match[1], 10);
-                    const month = parseInt(match[2], 10) - 1;
-                    const day = parseInt(match[3], 10);
-                    const date = new Date(year, month, day);
-                    if (!isNaN(date.getTime())) {
-                        return date;
-                    }
-                }
-            }
-        }
-    }
-    return null;
-}
 
 function setCurrentTime(): void {
     dateTime.value = getLocalDatetimeFromSameDateTimeOfUnixTime(getCurrentUnixTime(), props.timezoneUtcOffset);
 
     if (mode.value === 'time') {
-        scrollAllTimeSelectedItems();
+        scrollAllSelectedItems();
     }
 }
 
@@ -297,10 +451,36 @@ async function confirm(): Promise<void> {
 }
 
 function getTimerPickerItemStyle(textualValue: string, textualCurrentValue: string, itemsIndex: number, values: TimePickerValue[]): string {
-    if (!timePickerContainerHeight.value || !timePickerItemHeight.value) {
+    if (!dateTimePickerContainerHeight.value || !dateTimePickerItemHeight.value) {
         return '';
     }
 
+    // 对于年份，需要特殊处理
+    if (values.length > 0 && values[0]!.value.length === 4) {
+        // 年份选择器
+        const value = parseInt(textualValue, 10);
+        const currentValue = parseInt(textualCurrentValue, 10);
+        let valueDiff = value - currentValue;
+        
+        // 处理年份的循环滚动
+        const minYear = parseInt(values[0]!.value);
+        const maxYear = parseInt(values[values.length - 1]!.value);
+        if (Math.abs(valueDiff) > (maxYear - minYear) / 2) {
+            if (itemsIndex === 0 && value > maxYear - 50 && currentValue < minYear + 50) {
+                valueDiff = value - (maxYear + currentValue + 1);
+            } else if (itemsIndex === 2 && currentValue > maxYear - 50 && value < minYear + 50) {
+                valueDiff = (maxYear + value + 1) - currentValue;
+            }
+        }
+        
+        const angle = -24 * valueDiff;
+        if (angle > 180 || angle < -180) {
+            return '';
+        }
+        return `transform: translate3d(0, ${-valueDiff * dateTimePickerItemHeight.value}px, -100px) rotateX(${angle}deg)`;
+    }
+
+    // 对于月、日、时、分、秒
     const minValue = parseInt(values[0]!.value);
     const maxValue = parseInt(values[values.length - 1]!.value);
     const value = parseInt(textualValue, 10);
@@ -324,36 +504,46 @@ function getTimerPickerItemStyle(textualValue: string, textualCurrentValue: stri
         return '';
     }
 
-    return `transform: translate3d(0, ${-valueDiff * timePickerItemHeight.value}px, -100px) rotateX(${angle}deg)`;
+    return `transform: translate3d(0, ${-valueDiff * dateTimePickerItemHeight.value}px, -100px) rotateX(${angle}deg)`;
 }
 
-function initTimePickerStyle(): void {
-    const pickerItems = timePickerContainer.value?.querySelectorAll('.picker-item');
+function initDateTimePickerStyle(): void {
+    const pickerItems = dateTimePickerContainer.value?.querySelectorAll('.picker-item');
     const firstPickerItem = pickerItems ? pickerItems[0] : null;
 
-    if (timePickerContainer.value) {
-        timePickerContainerHeight.value = timePickerContainer.value.offsetHeight as number;
+    if (dateTimePickerContainer.value) {
+        dateTimePickerContainerHeight.value = dateTimePickerContainer.value.offsetHeight as number;
     }
 
     if (firstPickerItem && 'offsetHeight' in firstPickerItem) {
-        timePickerItemHeight.value = firstPickerItem.offsetHeight as number;
+        dateTimePickerItemHeight.value = firstPickerItem.offsetHeight as number;
     }
 
-    if (timePickerContainer.value && firstPickerItem && 'offsetHeight' in firstPickerItem) {
-        timePickerContainer.value.style.setProperty('--f7-picker-scroll-padding', `${(timePickerContainer.value.offsetHeight - (firstPickerItem.offsetHeight as number)) / 2}px`);
+    if (dateTimePickerContainer.value && firstPickerItem && 'offsetHeight' in firstPickerItem) {
+        dateTimePickerContainer.value.style.setProperty('--f7-picker-scroll-padding', `${(dateTimePickerContainer.value.offsetHeight - (firstPickerItem.offsetHeight as number)) / 2}px`);
     }
 }
 
-function scrollAllTimeSelectedItems(): void {
+function scrollAllSelectedItems(): void {
+    scrollToSelectedItem('picker-items-year', 'picker-year', currentYear.value);
+    scrollToSelectedItem('picker-items-month', 'picker-month', currentMonth.value);
+    scrollToSelectedItem('picker-items-day', 'picker-day', currentDay.value);
     scrollToSelectedItem('picker-items-hour', 'picker-hour', currentHour.value);
     scrollToSelectedItem('picker-items-minute', 'picker-minute', currentMinute.value);
     scrollToSelectedItem('picker-items-second', 'picker-second', currentSecond.value);
-    scrollToSelectedItem('picker-items-meridiem-indicator-first', 'picker-meridiem-indicator', currentMeridiemIndicator.value);
-    scrollToSelectedItem('picker-items-meridiem-indicator-last', 'picker-meridiem-indicator', currentMeridiemIndicator.value);
 }
 
-function scrollTimeSelectedItems(itemsClass: string, itemClass: string): void {
+function scrollSelectedItems(itemsClass: string, itemClass: string): void {
     switch (resetTimePickerItemPositionItemClass) {
+        case 'picker-year':
+            scrollToSelectedItem(itemsClass, itemClass, currentYear.value);
+            break;
+        case 'picker-month':
+            scrollToSelectedItem(itemsClass, itemClass, currentMonth.value);
+            break;
+        case 'picker-day':
+            scrollToSelectedItem(itemsClass, itemClass, currentDay.value);
+            break;
         case 'picker-hour':
             scrollToSelectedItem(itemsClass, itemClass, currentHour.value);
             break;
@@ -367,7 +557,7 @@ function scrollTimeSelectedItems(itemsClass: string, itemClass: string): void {
 }
 
 function scrollToSelectedItem(itemsClass: string, itemClass: string, value: string): void {
-    const itemsElement = timePickerContainer.value?.querySelector(`.${itemsClass}`);
+    const itemsElement = dateTimePickerContainer.value?.querySelector(`.${itemsClass}`);
     const itemElements = itemsElement?.querySelectorAll(`.${itemClass}`);
 
     if (!itemsElement || !itemElements || !itemElements.length) {
@@ -387,7 +577,7 @@ function scrollToSelectedItem(itemsClass: string, itemClass: string, value: stri
 }
 
 function onPickerColumnScroll(itemsClass: string, itemClass: string, scrollEnd: boolean): void {
-    const itemsElement = timePickerContainer.value?.querySelector(`.${itemsClass}`);
+    const itemsElement = dateTimePickerContainer.value?.querySelector(`.${itemsClass}`);
     const itemElements = itemsElement?.querySelectorAll(`.${itemClass}`);
     const firstPickerElement = itemElements ? itemElements[0] : null;
 
@@ -406,6 +596,15 @@ function onPickerColumnScroll(itemsClass: string, itemClass: string, scrollEnd: 
 
         if (value) {
             switch (itemClass) {
+                case 'picker-year':
+                    currentYear.value = value;
+                    break;
+                case 'picker-month':
+                    currentMonth.value = value;
+                    break;
+                case 'picker-day':
+                    currentDay.value = value;
+                    break;
                 case 'picker-hour':
                     currentHour.value = value;
                     break;
@@ -415,9 +614,6 @@ function onPickerColumnScroll(itemsClass: string, itemClass: string, scrollEnd: 
                 case 'picker-second':
                     currentSecond.value = value;
                     break;
-                case 'picker-meridiem-indicator':
-                    currentMeridiemIndicator.value = value;
-                    break;
             }
 
             if (itemsIndex === '0' || itemsIndex === '2') {
@@ -426,7 +622,7 @@ function onPickerColumnScroll(itemsClass: string, itemClass: string, scrollEnd: 
                 } else {
                     if (resetTimePickerItemPositionItemsClass && resetTimePickerItemPositionItemClass
                         && resetTimePickerItemPositionItemsClass !== itemsClass && resetTimePickerItemPositionItemClass !== itemClass) {
-                        scrollTimeSelectedItems(resetTimePickerItemPositionItemsClass, resetTimePickerItemPositionItemClass);
+                        scrollSelectedItems(resetTimePickerItemPositionItemsClass, resetTimePickerItemPositionItemClass);
                         resetTimePickerItemPositionItemsClass = undefined;
                         resetTimePickerItemPositionItemClass = undefined;
                         resetTimePickerItemPositionItemsLastOffsetTop = undefined;
@@ -451,7 +647,7 @@ function delayCheckAndResetTimePickerItemPosition(): void {
         return;
     }
 
-    const itemsElement = timePickerContainer.value?.querySelector(`.${resetTimePickerItemPositionItemsClass}`);
+    const itemsElement = dateTimePickerContainer.value?.querySelector(`.${resetTimePickerItemPositionItemsClass}`);
 
     if (!itemsElement) {
         return;
@@ -465,7 +661,7 @@ function delayCheckAndResetTimePickerItemPosition(): void {
     }
 
     if (resetTimePickerItemPositionCheckedFrames > 3) {
-        scrollTimeSelectedItems(resetTimePickerItemPositionItemsClass, resetTimePickerItemPositionItemClass);
+        scrollSelectedItems(resetTimePickerItemPositionItemsClass, resetTimePickerItemPositionItemClass);
         resetTimePickerItemPositionItemsClass = undefined;
         resetTimePickerItemPositionItemClass = undefined;
         resetTimePickerItemPositionItemsLastOffsetTop = undefined;
@@ -485,8 +681,8 @@ function onSheetOpen(): void {
 
     if (mode.value === 'time') {
         nextTick(() => {
-            initTimePickerStyle();
-            scrollAllTimeSelectedItems();
+            initDateTimePickerStyle();
+            scrollAllSelectedItems();
         });
     }
 
@@ -502,8 +698,8 @@ watch(mode, (newValue) => {
         datetimepicker.value?.switchView('calendar');
     } else if (newValue === 'time') {
         nextTick(() => {
-            initTimePickerStyle();
-            scrollAllTimeSelectedItems();
+            initDateTimePickerStyle();
+            scrollAllSelectedItems();
         });
     }
 });
@@ -514,10 +710,13 @@ watch(mode, (newValue) => {
     border: 0;
 }
 
-.date-time-selection-sheet .time-picker-container .picker-columns {
+.date-time-selection-sheet .date-time-picker-container .picker-columns {
     justify-content: space-evenly;
 }
 
+.picker-year,
+.picker-month,
+.picker-day,
 .picker-hour,
 .picker-minute,
 .picker-second {
