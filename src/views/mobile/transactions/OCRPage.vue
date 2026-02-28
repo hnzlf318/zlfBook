@@ -267,8 +267,9 @@ function buildAddUrl(item: RecognizedReceiptImageResponse, rowIndex?: number): s
     if (item.categoryId) params.set('categoryId', item.categoryId);
     if (item.sourceAccountId) params.set('accountId', item.sourceAccountId);
     if (item.destinationAccountId) params.set('destinationAccountId', item.destinationAccountId);
-    if (item.sourceAmount != null) params.set('amount', String(item.sourceAmount));
-    if (item.destinationAmount != null) params.set('destinationAmount', String(item.destinationAmount));
+    // 取绝对值，因为交易类型已经通过 type 参数传递了
+    if (item.sourceAmount != null) params.set('amount', String(Math.abs(item.sourceAmount)));
+    if (item.destinationAmount != null) params.set('destinationAmount', String(Math.abs(item.destinationAmount)));
     if (item.tagIds?.length) params.set('tagIds', item.tagIds.join(','));
     if (item.itemIds?.length) params.set('itemIds', item.itemIds.join(','));
     if (item.comment) params.set('comment', item.comment);
