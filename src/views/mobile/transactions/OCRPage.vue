@@ -19,23 +19,26 @@
         </f7-block>
 
         <f7-popup v-model:opened="previewOpened">
-            <f7-page>
-                <f7-navbar :title="tt('OCR Bill Recognition')"></f7-navbar>
+            <f7-page class="page-navbar-bottom ocr-preview-page">
+                <f7-navbar class="ocr-preview-navbar">
+                    <f7-nav-left>
+                        <f7-link icon-f7="chevron_left" @click="onPreviewCancel"></f7-link>
+                    </f7-nav-left>
+                    <f7-nav-title>{{ tt('Recognized Image') }}</f7-nav-title>
+                    <f7-nav-right class="navbar-compact-icons">
+                        <f7-link icon-f7="magnifyingglass"
+                                :disabled="recognizing || !previewFile"
+                                :title="recognizing ? tt('Recognizing...') : tt('Recognize')"
+                                @click="onPreviewRecognize">
+                        </f7-link>
+                        <f7-link icon-f7="photo"
+                                :title="tt('Select Image')"
+                                @click="onPreviewSelectImage">
+                        </f7-link>
+                    </f7-nav-right>
+                </f7-navbar>
                 <f7-block class="ocr-preview-block">
                     <img v-if="previewImageSrc" :src="previewImageSrc" class="ocr-preview-img" />
-                </f7-block>
-                <f7-block class="ocr-preview-actions">
-                    <f7-button large outline @click="onPreviewSelectImage">
-                        {{ tt('Select Image') }}
-                    </f7-button>
-                    <f7-button large fill class="ocr-preview-recognize-btn"
-                               :disabled="recognizing || !previewFile"
-                               @click="onPreviewRecognize">
-                        {{ recognizing ? tt('Recognizing...') : tt('Recognize') }}
-                    </f7-button>
-                    <f7-button large color="gray" outline @click="onPreviewCancel">
-                        {{ tt('Cancel') }}
-                    </f7-button>
                 </f7-block>
             </f7-page>
         </f7-popup>
@@ -332,6 +335,21 @@ function onAdd(item: RecognizedReceiptImageResponse, idx: number): void {
     bottom: 16px;
 }
 .ocr-add-btn { flex-shrink: 0; }
+/* OCR 预览页面样式 - navbar 浮动在图片上方 */
+.ocr-preview-page > .page-content {
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+}
+
+/* OCR 预览 navbar 浮动在图片上方，半透明背景 */
+.ocr-preview-page .ocr-preview-navbar {
+    background: rgba(var(--f7-navbar-bg-color-rgb, 255, 255, 255), 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 .ocr-preview-block {
     --f7-block-margin-vertical: 0;
     --f7-block-padding-horizontal: 0;
@@ -341,29 +359,14 @@ function onAdd(item: RecognizedReceiptImageResponse, idx: number): void {
     display: flex;
     justify-content: center;
     align-items: center;
+    min-height: 100vh;
     padding: 0.5rem;
+    padding-bottom: 50px; /* 为底部 navbar 预留空间 */
 }
 .ocr-preview-img {
     max-width: 100%;
-    max-height: 90vh;
+    max-height: 100vh;
     object-fit: contain;
     border-radius: 8px;
-}
-.ocr-preview-actions {
-    --f7-block-margin-vertical: 0;
-    --f7-block-padding-horizontal: 0;
-    --f7-block-padding-vertical: 0;
-    margin: 0;
-    padding: 0;
-    background: transparent;
-    display: flex;
-    flex-direction: row;
-    gap: 0.2rem;
-    justify-content: space-between;
-    align-items: stretch;
-    flex-wrap: nowrap;
-}
-.ocr-preview-recognize-btn {
-    margin-top: 0;
 }
 </style>
