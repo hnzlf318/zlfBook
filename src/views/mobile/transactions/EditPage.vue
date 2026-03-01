@@ -14,7 +14,7 @@
                 <f7-link v-if="pageTypeAndMode?.type === TransactionEditPageType.Transaction && mode === TransactionEditPageMode.Edit"
                          icon-f7="xmark" :title="tt('Cancel')" @click="cancelEditMode"></f7-link>
                 <f7-link icon-f7="checkmark_alt" :class="{ 'disabled': inputIsEmpty || submitting }" @click="save"
-                         v-if="mode === TransactionEditPageMode.Add || mode === TransactionEditPageMode.Edit"
+                         v-if="(pageTypeAndMode?.type === TransactionEditPageType.Transaction || pageTypeAndMode?.type === TransactionEditPageType.Template) && (mode === TransactionEditPageMode.Add || mode === TransactionEditPageMode.Edit)"
                          :title="tt('Save')"></f7-link>
             </f7-nav-right>
         </f7-navbar>
