@@ -1334,6 +1334,7 @@ export const useStatisticsStore = defineStore('statistics', () => {
         transactionStatisticsFilter.value.filterAccountIds = {};
         transactionStatisticsFilter.value.filterCategoryIds = {};
         transactionStatisticsFilter.value.tagFilter = '';
+        transactionStatisticsFilter.value.itemFilter = '';
         transactionStatisticsFilter.value.keyword = '';
         transactionCategoryStatisticsData.value = null;
         transactionCategoryTrendsData.value = [];
@@ -1512,6 +1513,12 @@ export const useStatisticsStore = defineStore('statistics', () => {
             transactionStatisticsFilter.value.tagFilter = filter.tagFilter;
         } else {
             transactionStatisticsFilter.value.tagFilter = '';
+        }
+
+        if (filter && isString(filter.itemFilter)) {
+            transactionStatisticsFilter.value.itemFilter = filter.itemFilter;
+        } else {
+            transactionStatisticsFilter.value.itemFilter = '';
         }
 
         if (filter && isString(filter.keyword)) {
