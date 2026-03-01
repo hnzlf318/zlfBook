@@ -57,7 +57,7 @@ export function useTransactionItemFilterSettingPageBase(type?: string) {
     const lowerCaseFilterContent = computed<string>(() => filterContent.value.toLowerCase());
 
     const title = computed<string>(() => {
-        return 'Filter Transaction Items';
+        return tt('Filter Transaction Items');
     });
 
     const applyText = computed<string>(() => {

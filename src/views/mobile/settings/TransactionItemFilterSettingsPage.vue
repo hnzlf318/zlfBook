@@ -27,7 +27,7 @@
                         <f7-list strong inset dividers
                                  class="combination-list-header combination-list-opened">
                             <f7-list-item group-title>
-                                <small>Items</small>
+                                <small>{{ tt('Transaction Items') }}</small>
                                 <f7-icon class="combination-list-chevron-icon" f7="chevron_up"></f7-icon>
                             </f7-list-item>
                         </f7-list>
@@ -35,7 +35,7 @@
                 </f7-block-title>
                 <f7-accordion-content style="height: auto">
                     <f7-list strong inset dividers accordion-list class="combination-list-content">
-                        <f7-list-item checkbox class="disabled" title="Item Name"
+                        <f7-list-item checkbox class="disabled" :title="tt('Transaction Item Name')"
                                       :key="itemIdx" v-for="itemIdx in [ 1, 2, 3 ]">
                             <template #media>
                                 <f7-icon f7="app_fill"></f7-icon>
