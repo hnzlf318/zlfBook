@@ -7,6 +7,7 @@ import { useUserStore } from '@/stores/user.ts';
 import { useAccountsStore } from '@/stores/account.ts';
 import { useTransactionCategoriesStore } from '@/stores/transactionCategory.ts';
 import { useTransactionTagsStore } from '@/stores/transactionTag.ts';
+import { useTransactionItemsStore } from '@/stores/transactionItem.ts';
 import { type TransactionListFilter, type TransactionMonthList, useTransactionsStore } from '@/stores/transaction.ts';
 
 import { type TypeAndName, keys, entries } from '@/core/base.ts';
@@ -21,7 +22,7 @@ import type { Account } from '@/models/account.ts';
 import type { TransactionCategory } from '@/models/transaction_category.ts';
 import { TransactionTagGroup } from '@/models/transaction_tag_group.ts';
 import type { TransactionTag } from '@/models/transaction_tag.ts';
-import { type Transaction, TransactionTagFilter } from '@/models/transaction.ts';
+import { type Transaction, TransactionTagFilter, TransactionItemFilter } from '@/models/transaction.ts';
 
 import {
     getUtcOffsetByUtcOffsetMinutes,
@@ -183,9 +184,11 @@ export function useTransactionListPageBase() {
     const queryAllFilterCategoryIds = computed<Record<string, boolean>>(() => transactionsStore.allFilterCategoryIds);
     const queryAllFilterAccountIds = computed<Record<string, boolean>>(() => transactionsStore.allFilterAccountIds);
     const queryAllFilterTagIds = computed<Record<string, boolean>>(() => transactionsStore.allFilterTagIds);
+    const queryAllFilterItemIds = computed<Record<string, boolean>>(() => transactionsStore.allFilterItemIds);
     const queryAllFilterCategoryIdsCount = computed<number>(() => transactionsStore.allFilterCategoryIdsCount);
     const queryAllFilterAccountIdsCount = computed<number>(() => transactionsStore.allFilterAccountIdsCount);
     const queryAllFilterTagIdsCount = computed<number>(() => transactionsStore.allFilterTagIdsCount);
+    const queryAllFilterItemIdsCount = computed<number>(() => transactionsStore.allFilterItemIdsCount);
 
     const queryAccountName = computed<string>(() => {
         if (queryAllFilterAccountIdsCount.value > 1) {
@@ -221,6 +224,26 @@ export function useTransactionListPageBase() {
         }
 
         return tt('Tags');
+    });
+
+    const queryItemName = computed<string>(() => {
+        if (query.value.itemFilter === TransactionItemFilter.TransactionNoItemFilterValue) {
+            return tt('Without Items');
+        }
+
+        if (queryAllFilterItemIdsCount.value > 1) {
+            return tt('Multiple Items');
+        }
+
+        for (const itemId of keys(queryAllFilterItemIds.value)) {
+            const itemName = allTransactionItems.value[itemId]?.name;
+
+            if (itemName) {
+                return itemName;
+            }
+        }
+
+        return tt('Transaction Items');
     });
 
     const queryAmount = computed<string>(() => {
@@ -301,6 +324,22 @@ export function useTransactionListPageBase() {
 
         for (const tag of tagsInGroup) {
             if (!tag.hidden || queryAllFilterTagIds.value[tag.id]) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    function hasVisibleItemsInItemGroup(itemGroup: TransactionItemGroup): boolean {
+        const itemsInGroup = allTransactionItemsByGroup.value[itemGroup.id];
+
+        if (!itemsInGroup || !itemsInGroup.length) {
+            return false;
+        }
+
+        for (const item of itemsInGroup) {
+            if (!item.hidden || queryAllFilterItemIds.value[item.id]) {
                 return true;
             }
         }
@@ -421,6 +460,10 @@ export function useTransactionListPageBase() {
         allTransactionTagsByGroup,
         allTransactionTags,
         allAvailableTagsCount,
+        allTransactionItemGroupsWithDefault,
+        allTransactionItemsByGroup,
+        allTransactionItems,
+        allAvailableItemsCount,
         displayPageTypeName,
         query,
         queryDateRangeName,
@@ -431,12 +474,15 @@ export function useTransactionListPageBase() {
         queryAllFilterCategoryIds,
         queryAllFilterAccountIds,
         queryAllFilterTagIds,
+        queryAllFilterItemIds,
         queryAllFilterCategoryIdsCount,
         queryAllFilterAccountIdsCount,
         queryAllFilterTagIdsCount,
+        queryAllFilterItemIdsCount,
         queryAccountName,
         queryCategoryName,
         queryTagName,
+        queryItemName,
         queryAmount,
         transactionCalendarMinDate,
         transactionCalendarMaxDate,
@@ -445,6 +491,7 @@ export function useTransactionListPageBase() {
         // functions
         hasSubCategoryInQuery,
         hasVisibleTagsInTagGroup,
+        hasVisibleItemsInItemGroup,
         isSameAsDefaultTimezoneOffsetMinutes,
         getDisplayTime,
         getDisplayLongDate,

@@ -433,7 +433,86 @@
                                                     </v-list>
                                                 </v-menu>
                                             </th>
-                                            <th class="transaction-table-column-items text-no-wrap">{{ tt('Transaction Items') }}</th>
+                                            <th class="transaction-table-column-items text-no-wrap">
+                                                <v-menu ref="itemFilterMenu" class="transaction-item-menu"
+                                                        eager location="bottom" max-height="500"
+                                                        @update:model-value="scrollItemMenuToSelectedItem">
+                                                    <template #activator="{ props }">
+                                                        <div class="d-flex align-center cursor-pointer"
+                                                             :class="{ 'readonly': loading, 'text-primary': query.itemFilter }" v-bind="props">
+                                                            <span>{{ queryItemName }}</span>
+                                                            <v-icon :icon="mdiMenuDown" />
+                                                        </div>
+                                                    </template>
+                                                    <v-list :selected="[queryAllSelectedFilterItemIds]">
+                                                        <v-list-item key="" value="" class="text-sm" density="compact"
+                                                                     :class="{ 'list-item-selected': !query.itemFilter }"
+                                                                     :append-icon="(!query.itemFilter ? mdiCheck : undefined)">
+                                                            <v-list-item-title class="cursor-pointer"
+                                                                               @click="changeItemFilter('')">
+                                                                <div class="d-flex align-center">
+                                                                    <v-icon :icon="mdiViewGridOutline" />
+                                                                    <span class="text-sm ms-3">{{ tt('All') }}</span>
+                                                                </div>
+                                                            </v-list-item-title>
+                                                        </v-list-item>
+                                                        <v-list-item class="text-sm" density="compact"
+                                                                     :key="TransactionItemFilter.TransactionNoItemFilterValue"
+                                                                     :value="TransactionItemFilter.TransactionNoItemFilterValue"
+                                                                     :class="{ 'list-item-selected': query.itemFilter === TransactionItemFilter.TransactionNoItemFilterValue }"
+                                                                     :append-icon="(query.itemFilter === TransactionItemFilter.TransactionNoItemFilterValue ? mdiCheck : undefined)">
+                                                            <v-list-item-title class="cursor-pointer"
+                                                                               @click="changeItemFilter(TransactionItemFilter.TransactionNoItemFilterValue)">
+                                                                <div class="d-flex align-center">
+                                                                    <v-icon :icon="mdiBorderNoneVariant" />
+                                                                    <span class="text-sm ms-3">{{ tt('Without Items') }}</span>
+                                                                </div>
+                                                            </v-list-item-title>
+                                                        </v-list-item>
+                                                        <v-list-item key="multiple" value="multiple" class="text-sm" density="compact"
+                                                                     :class="{ 'list-item-selected': query.itemFilter && queryAllFilterItemIdsCount > 1 }"
+                                                                     :append-icon="(query.itemFilter && queryAllFilterItemIdsCount > 1 ? mdiCheck : undefined)"
+                                                                     v-if="allAvailableItemsCount > 0">
+                                                            <v-list-item-title class="cursor-pointer"
+                                                                               @click="showFilterItemDialog = true">
+                                                                <div class="d-flex align-center">
+                                                                    <v-icon :icon="mdiVectorArrangeBelow" />
+                                                                    <span class="text-sm ms-3">{{ tt('Multiple Items') }}</span>
+                                                                </div>
+                                                            </v-list-item-title>
+                                                        </v-list-item>
+
+                                                        <template :key="transactionItemGroup.id"
+                                                                  v-for="transactionItemGroup in allTransactionItemGroupsWithDefault">
+                                                            <v-divider v-if="allTransactionItemsByGroup[transactionItemGroup.id] && allTransactionItemsByGroup[transactionItemGroup.id]?.length && hasVisibleItemsInItemGroup(transactionItemGroup)" />
+
+                                                            <v-list-item density="compact" v-if="allTransactionItemsByGroup[transactionItemGroup.id] && allTransactionItemsByGroup[transactionItemGroup.id]?.length && hasVisibleItemsInItemGroup(transactionItemGroup)">
+                                                                <v-list-item-title>
+                                                                    <span class="text-sm">{{ transactionItemGroup.name }}</span>
+                                                                </v-list-item-title>
+                                                            </v-list-item>
+
+                                                            <template :key="transactionItem.id"
+                                                                      v-for="(transactionItem, index) in (allTransactionItemsByGroup[transactionItemGroup.id] ?? [])">
+                                                                <v-divider v-if="index > 0 && (!transactionItem.hidden || isDefined(queryAllFilterItemIds[transactionItem.id]))" />
+                                                                <v-list-item class="text-sm" density="compact"
+                                                                             :value="transactionItem.id"
+                                                                             :class="{ 'list-item-selected': queryAllFilterItemIdsCount === 1 && isDefined(queryAllFilterItemIds[transactionItem.id]), 'item-in-multiple-selection': queryAllFilterItemIdsCount > 1 && isDefined(queryAllFilterItemIds[transactionItem.id]) }"
+                                                                             :append-icon="(queryAllFilterItemIds[transactionItem.id] === true ? mdiCheck : (queryAllFilterItemIds[transactionItem.id] === false ? mdiClose : undefined))"
+                                                                             v-if="!transactionItem.hidden || isDefined(queryAllFilterItemIds[transactionItem.id])">
+                                                                    <v-list-item-title class="cursor-pointer"
+                                                                                       @click="changeItemFilter(TransactionItemFilter.of(transactionItem.id).toTextualItemFilter())">
+                                                                        <div class="d-flex align-center">
+                                                                            <v-icon size="24" :icon="mdiFormatListBulleted"/>
+                                                                            <span class="text-sm ms-3">{{ transactionItem.name }}</span>
+                                                                        </div>
+                                                                    </v-list-item-title>
+                                                                </v-list-item>
+                                                            </template>
+                                                        </template>
+                                                    </v-list>
+                                                </v-menu>
+                                            </th>
                                             <th class="transaction-table-column-tags text-no-wrap" v-if="showTagInTransactionListPage">
                                                 <v-menu ref="tagFilterMenu" class="transaction-tag-menu"
                                                         eager location="bottom" max-height="500"
@@ -658,6 +737,11 @@
                                        @settings:change="changeMultipleTagsFilter" />
     </v-dialog>
 
+    <v-dialog width="800" v-model="showFilterItemDialog">
+        <transaction-item-filter-settings-card type="transactionListCurrent" :dialog-mode="true"
+                                       @settings:change="changeMultipleItemsFilter" />
+    </v-dialog>
+
     <confirm-dialog ref="confirmDialog"/>
     <snack-bar ref="snackbar" />
 </template>
@@ -673,6 +757,7 @@ import ImportDialog from './import/ImportDialog.vue';
 import AccountFilterSettingsCard from '@/views/desktop/common/cards/AccountFilterSettingsCard.vue';
 import CategoryFilterSettingsCard from '@/views/desktop/common/cards/CategoryFilterSettingsCard.vue';
 import TransactionTagFilterSettingsCard from '@/views/desktop/common/cards/TransactionTagFilterSettingsCard.vue';
+import TransactionItemFilterSettingsCard from '@/views/desktop/common/cards/TransactionItemFilterSettingsCard.vue';
 import { TransactionEditPageType } from '@/views/base/transactions/TransactionEditPageBase.ts';
 
 import { ref, computed, useTemplateRef, watch, nextTick, unref } from 'vue';
@@ -823,6 +908,10 @@ const {
     allTransactionTagsByGroup,
     allTransactionTags,
     allAvailableTagsCount,
+    allTransactionItemGroupsWithDefault,
+    allTransactionItemsByGroup,
+    allTransactionItems,
+    allAvailableItemsCount,
     query,
     queryMinTime,
     queryMaxTime,
@@ -831,18 +920,22 @@ const {
     queryAllFilterCategoryIds,
     queryAllFilterAccountIds,
     queryAllFilterTagIds,
+    queryAllFilterItemIds,
     queryAllFilterCategoryIdsCount,
     queryAllFilterAccountIdsCount,
     queryAllFilterTagIdsCount,
+    queryAllFilterItemIdsCount,
     queryAccountName,
     queryCategoryName,
     queryTagName,
+    queryItemName,
     queryAmount,
     transactionCalendarMinDate,
     transactionCalendarMaxDate,
     currentMonthTransactionData,
     hasSubCategoryInQuery,
     hasVisibleTagsInTagGroup,
+    hasVisibleItemsInItemGroup,
     isSameAsDefaultTimezoneOffsetMinutes,
     canAddTransaction,
     getDisplayTime,
@@ -878,6 +971,7 @@ const categoryFilterMenu = useTemplateRef<VMenu>('categoryFilterMenu');
 const amountFilterMenu = useTemplateRef<VMenu>('amountFilterMenu');
 const accountFilterMenu = useTemplateRef<VMenu>('accountFilterMenu');
 const tagFilterMenu = useTemplateRef<VMenu>('tagFilterMenu');
+const itemFilterMenu = useTemplateRef<VMenu>('itemFilterMenu');
 
 const confirmDialog = useTemplateRef<ConfirmDialogType>('confirmDialog');
 const snackbar = useTemplateRef<SnackBarType>('snackbar');
@@ -1037,6 +1131,22 @@ const queryAllSelectedFilterTagIds = computed<string>(() => {
 
         return '';
     } else { // queryAllFilterTagIdsCount.value > 1
+        return 'multiple';
+    }
+});
+
+const queryAllSelectedFilterItemIds = computed<string>(() => {
+    if (query.value.itemFilter === TransactionItemFilter.TransactionNoItemFilterValue) {
+        return TransactionItemFilter.TransactionNoItemFilterValue;
+    } else if (queryAllFilterItemIdsCount.value === 0) {
+        return '';
+    } else if (queryAllFilterItemIdsCount.value === 1) {
+        for (const itemId of keys(queryAllFilterItemIds.value)) {
+            return itemId;
+        }
+
+        return '';
+    } else { // queryAllFilterItemIdsCount.value > 1
         return 'multiple';
     }
 });
@@ -1534,6 +1644,24 @@ function changeMultipleTagsFilter(changed: boolean): void {
     updateUrlWhenChanged(changed);
 }
 
+function changeItemFilter(itemFilter: string): void {
+    if (query.value.itemFilter === itemFilter) {
+        return;
+    }
+
+    const changed = transactionsStore.updateTransactionListFilter({
+        itemFilter: itemFilter
+    });
+
+    updateUrlWhenChanged(changed);
+}
+
+function changeMultipleItemsFilter(changed: boolean): void {
+    showFilterItemDialog.value = false;
+
+    updateUrlWhenChanged(changed);
+}
+
 function changeKeywordFilter(keyword: string): void {
     if (query.value.keyword === keyword) {
         return;
@@ -1767,6 +1895,12 @@ function scrollAccountMenuToSelectedItem(opened: boolean): void {
 function scrollTagMenuToSelectedItem(opened: boolean): void {
     if (opened) {
         scrollMenuToSelectedItem(tagFilterMenu.value);
+    }
+}
+
+function scrollItemMenuToSelectedItem(opened: boolean): void {
+    if (opened) {
+        scrollMenuToSelectedItem(itemFilterMenu.value);
     }
 }
 

@@ -24,6 +24,7 @@ import {
     type TransactionReconciliationStatementResponse,
     Transaction,
     TransactionTagFilter,
+    TransactionItemFilter,
     EMPTY_TRANSACTION_RESULT
 } from '@/models/transaction.ts';
 import type {
@@ -161,9 +162,33 @@ export const useTransactionsStore = defineStore('transactions', () => {
         return allTagIdsMap;
     });
 
+    const allFilterItemIds = computed<Record<string, boolean>>(() => {
+        const itemFilters: TransactionItemFilter[] = TransactionItemFilter.parse(transactionsFilter.value.itemFilter);
+        const allItemIdsMap: Record<string, boolean> = {};
+
+        for (const itemFilter of itemFilters) {
+            let state: boolean = true;
+
+            if (itemFilter.type === TransactionTagFilterType.HasAny || itemFilter.type === TransactionTagFilterType.HasAll) {
+                state = true;
+            } else if (itemFilter.type === TransactionTagFilterType.NotHasAny || itemFilter.type === TransactionTagFilterType.NotHasAll) {
+                state = false;
+            } else {
+                continue;
+            }
+
+            for (const itemId of itemFilter.itemIds) {
+                allItemIdsMap[itemId] = state;
+            }
+        }
+
+        return allItemIdsMap;
+    });
+
     const allFilterCategoryIdsCount = computed<number>(() => countSplitItems(transactionsFilter.value.categoryIds, ','));
     const allFilterAccountIdsCount = computed<number>(() => countSplitItems(transactionsFilter.value.accountIds, ','));
     const allFilterTagIdsCount = computed<number>(() => getObjectOwnFieldCount(allFilterTagIds.value));
+    const allFilterItemIdsCount = computed<number>(() => getObjectOwnFieldCount(allFilterItemIds.value));
 
     const noTransaction = computed<boolean>(() => {
         for (const transactionMonthList of transactions.value) {
@@ -1476,9 +1501,11 @@ export const useTransactionsStore = defineStore('transactions', () => {
         allFilterCategoryIds,
         allFilterAccountIds,
         allFilterTagIds,
+        allFilterItemIds,
         allFilterCategoryIdsCount,
         allFilterAccountIdsCount,
         allFilterTagIdsCount,
+        allFilterItemIdsCount,
         noTransaction,
         hasMoreTransaction,
         // functions
