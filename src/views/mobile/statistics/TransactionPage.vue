@@ -847,6 +847,10 @@ function filterTags(): void {
     props.f7router.navigate('/settings/filter/tag?type=statisticsCurrent');
 }
 
+function filterItems(): void {
+    props.f7router.navigate('/settings/filter/item?type=statisticsCurrent');
+}
+
 function filterDescription(): void {
     if (analysisType.value === StatisticsAnalysisType.AssetTrends) {
         return;

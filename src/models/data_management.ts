@@ -5,6 +5,7 @@ export interface ExportTransactionDataRequest {
     readonly categoryIds: string;
     readonly accountIds: string;
     readonly tagFilter: string;
+    readonly itemFilter: string;
     readonly amountFilter: string;
     readonly keyword: string;
 }

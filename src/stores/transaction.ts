@@ -125,6 +125,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
         categoryIds: '',
         accountIds: '',
         tagFilter: '',
+        itemFilter: '',
         amountFilter: '',
         keyword: ''
     });
@@ -921,6 +922,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
                 categoryIds: transactionsFilter.value.categoryIds,
                 accountIds: transactionsFilter.value.accountIds,
                 tagFilter: transactionsFilter.value.tagFilter,
+                itemFilter: transactionsFilter.value.itemFilter,
                 amountFilter: transactionsFilter.value.amountFilter,
                 keyword: transactionsFilter.value.keyword
             }).then(response => {
