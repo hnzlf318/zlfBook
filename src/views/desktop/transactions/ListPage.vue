@@ -1336,7 +1336,8 @@ function reload(force: boolean, init: boolean): void {
     Promise.all([
         accountsStore.loadAllAccounts({ force: false }),
         transactionCategoriesStore.loadAllCategories({ force: false }),
-        transactionTagsStore.loadAllTags({ force: false })
+        transactionTagsStore.loadAllTags({ force: false }),
+        transactionItemsStore.loadAllItems({ force: false })
     ]).then(() => {
         if (init) {
             if (desktopPageStore.showAddTransactionDialogInTransactionList) {
