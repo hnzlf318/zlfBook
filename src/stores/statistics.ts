@@ -135,6 +135,7 @@ export interface TransactionStatisticsPartialFilter {
     filterAccountIds?: Record<string, boolean>;
     filterCategoryIds?: Record<string, boolean>;
     tagFilter?: string;
+    itemFilter?: string;
     keyword?: string;
     sortingType?: number;
 }
@@ -156,6 +157,7 @@ export interface TransactionStatisticsFilter extends TransactionStatisticsPartia
     filterAccountIds: Record<string, boolean>;
     filterCategoryIds: Record<string, boolean>;
     tagFilter: string;
+    itemFilter: string;
     keyword: string;
     sortingType: number;
 }
@@ -184,6 +186,7 @@ export const useStatisticsStore = defineStore('statistics', () => {
         filterAccountIds: {},
         filterCategoryIds: {},
         tagFilter: '',
+        itemFilter: '',
         keyword: '',
         sortingType: ChartSortingType.Default.type
     });
@@ -1615,6 +1618,11 @@ export const useStatisticsStore = defineStore('statistics', () => {
             changed = true;
         }
 
+        if (filter && isString(filter.itemFilter) && transactionStatisticsFilter.value.itemFilter !== filter.itemFilter) {
+            transactionStatisticsFilter.value.itemFilter = filter.itemFilter;
+            changed = true;
+        }
+
         if (filter && isString(filter.keyword) && transactionStatisticsFilter.value.keyword !== filter.keyword) {
             transactionStatisticsFilter.value.keyword = filter.keyword;
             changed = true;
@@ -1686,6 +1694,10 @@ export const useStatisticsStore = defineStore('statistics', () => {
 
         if (transactionStatisticsFilter.value.tagFilter) {
             querys.push('tagFilter=' + transactionStatisticsFilter.value.tagFilter);
+        }
+
+        if (transactionStatisticsFilter.value.itemFilter) {
+            querys.push('itemFilter=' + transactionStatisticsFilter.value.itemFilter);
         }
 
         if (transactionStatisticsFilter.value.keyword) {
@@ -1790,6 +1802,10 @@ export const useStatisticsStore = defineStore('statistics', () => {
                 querys.push('tagFilter=' + transactionStatisticsFilter.value.tagFilter);
             }
 
+            if (transactionStatisticsFilter.value.itemFilter) {
+                querys.push('itemFilter=' + transactionStatisticsFilter.value.itemFilter);
+            }
+
             if (transactionStatisticsFilter.value.keyword) {
                 querys.push('keyword=' + encodeURIComponent(transactionStatisticsFilter.value.keyword));
             }
@@ -1819,6 +1835,7 @@ export const useStatisticsStore = defineStore('statistics', () => {
                 startTime: transactionStatisticsFilter.value.categoricalChartStartTime,
                 endTime: transactionStatisticsFilter.value.categoricalChartEndTime,
                 tagFilter: transactionStatisticsFilter.value.tagFilter,
+                itemFilter: transactionStatisticsFilter.value.itemFilter,
                 keyword: transactionStatisticsFilter.value.keyword,
                 useTransactionTimezone: settingsStore.appSettings.statistics.defaultTimezoneType === TimezoneTypeForStatistics.TransactionTimezone.type
             }).then(response => {
@@ -1861,6 +1878,7 @@ export const useStatisticsStore = defineStore('statistics', () => {
                 startYearMonth: transactionStatisticsFilter.value.trendChartStartYearMonth,
                 endYearMonth: transactionStatisticsFilter.value.trendChartEndYearMonth,
                 tagFilter: transactionStatisticsFilter.value.tagFilter,
+                itemFilter: transactionStatisticsFilter.value.itemFilter,
                 keyword: transactionStatisticsFilter.value.keyword,
                 useTransactionTimezone: settingsStore.appSettings.statistics.defaultTimezoneType === TimezoneTypeForStatistics.TransactionTimezone.type
             }).then(response => {

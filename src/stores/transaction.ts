@@ -70,6 +70,7 @@ export interface TransactionListPartialFilter {
     categoryIds?: string;
     accountIds?: string;
     tagFilter?: string;
+    itemFilter?: string;
     amountFilter?: string;
     keyword?: string;
 }
@@ -82,6 +83,7 @@ export interface TransactionListFilter extends TransactionListPartialFilter {
     categoryIds: string;
     accountIds: string;
     tagFilter: string;
+    itemFilter: string;
     amountFilter: string;
     keyword: string;
 }
@@ -624,6 +626,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
         transactionsFilter.value.categoryIds = '';
         transactionsFilter.value.accountIds = '';
         transactionsFilter.value.tagFilter = '';
+        transactionsFilter.value.itemFilter = '';
         transactionsFilter.value.amountFilter = '';
         transactionsFilter.value.keyword = '';
         transactions.value = [];
@@ -679,6 +682,12 @@ export const useTransactionsStore = defineStore('transactions', () => {
             transactionsFilter.value.tagFilter = filter.tagFilter;
         } else {
             transactionsFilter.value.tagFilter = '';
+        }
+
+        if (filter && isString(filter.itemFilter)) {
+            transactionsFilter.value.itemFilter = filter.itemFilter;
+        } else {
+            transactionsFilter.value.itemFilter = '';
         }
 
         if (filter && isString(filter.amountFilter)) {
@@ -737,6 +746,11 @@ export const useTransactionsStore = defineStore('transactions', () => {
             changed = true;
         }
 
+        if (filter && isString(filter.itemFilter) && transactionsFilter.value.itemFilter !== filter.itemFilter) {
+            transactionsFilter.value.itemFilter = filter.itemFilter;
+            changed = true;
+        }
+
         if (filter && isString(filter.amountFilter) && transactionsFilter.value.amountFilter !== filter.amountFilter) {
             transactionsFilter.value.amountFilter = filter.amountFilter;
             changed = true;
@@ -771,6 +785,10 @@ export const useTransactionsStore = defineStore('transactions', () => {
             querys.push('tagFilter=' + transactionsFilter.value.tagFilter);
         }
 
+        if (transactionsFilter.value.itemFilter) {
+            querys.push('itemFilter=' + transactionsFilter.value.itemFilter);
+        }
+
         querys.push('dateType=' + transactionsFilter.value.dateType);
 
         if (DateRange.isBillingCycle(transactionsFilter.value.dateType) || transactionsFilter.value.dateType === DateRange.Custom.type) {
@@ -797,6 +815,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
             categoryIds: transactionsFilter.value.categoryIds,
             accountIds: transactionsFilter.value.accountIds,
             tagFilter: transactionsFilter.value.tagFilter,
+            itemFilter: transactionsFilter.value.itemFilter,
             amountFilter: transactionsFilter.value.amountFilter,
             keyword: transactionsFilter.value.keyword
         };
@@ -822,6 +841,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
                 categoryIds: transactionsFilter.value.categoryIds,
                 accountIds: transactionsFilter.value.accountIds,
                 tagFilter: transactionsFilter.value.tagFilter,
+                itemFilter: transactionsFilter.value.itemFilter,
                 amountFilter: transactionsFilter.value.amountFilter,
                 keyword: transactionsFilter.value.keyword
             }).then(response => {

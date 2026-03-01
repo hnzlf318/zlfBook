@@ -523,6 +523,76 @@ export class TransactionTagFilter {
     }
 }
 
+export class TransactionItemFilter {
+    public readonly itemIds: string[]
+    public readonly type: TransactionTagFilterType;
+
+    public static readonly TransactionNoItemFilterValue: string = 'none';
+
+    private constructor(itemIds: string[], type: TransactionTagFilterType) {
+        this.itemIds = itemIds;
+        this.type = type;
+    }
+
+    public static create(itemIds: string[], type: TransactionTagFilterType): TransactionItemFilter {
+        return new TransactionItemFilter(itemIds, type);
+    }
+
+    public static of(itemId: string): TransactionItemFilter {
+        return new TransactionItemFilter([itemId], TransactionTagFilterType.HasAny);
+    }
+
+    public static parse(itemFilter: string): TransactionItemFilter[] {
+        const ret: TransactionItemFilter[] = [];
+
+        if (!itemFilter || itemFilter === TransactionItemFilter.TransactionNoItemFilterValue) {
+            return ret;
+        }
+
+        const filters: string[] = itemFilter.split(';');
+
+        for (const filter of filters) {
+            const itemFilterItem: string[] = filter.split(':');
+
+            if (itemFilterItem.length !== 2) {
+                continue;
+            }
+
+            const itemFilterTypeValue: number = parseInt(itemFilterItem[0] as string, 10);
+
+            if (Number.isNaN(itemFilterTypeValue) || !Number.isFinite(itemFilterTypeValue)) {
+                continue;
+            }
+
+            const itemFilterType: TransactionTagFilterType | undefined = TransactionTagFilterType.parse(itemFilterTypeValue);
+
+            if (!itemFilterType) {
+                continue;
+            }
+
+            const itemIds: string[] = (itemFilterItem[1] as string).split(',');
+            const itemFilter: TransactionItemFilter = new TransactionItemFilter(itemIds, itemFilterType);
+            ret.push(itemFilter);
+        }
+
+        return ret;
+    }
+
+    public static toTextualItemFilters(itemFilters: TransactionItemFilter[]): string {
+        const textualItemFilters: string[] = [];
+
+        for (const itemFilter of itemFilters) {
+            textualItemFilters.push(itemFilter.toTextualItemFilter());
+        }
+
+        return textualItemFilters.join(';');
+    }
+
+    public toTextualItemFilter(): string {
+        return `${this.type.type}:${this.itemIds.join(',')}`;
+    }
+}
+
 export interface TransactionDraft {
     readonly type?: number;
     readonly categoryId?: string;

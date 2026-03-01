@@ -27,6 +27,7 @@ import ApplicationCloudSyncSettingsPage from '@/views/mobile/settings/Applicatio
 import AccountFilterSettingsPage from '@/views/mobile/settings/AccountFilterSettingsPage.vue';
 import CategoryFilterSettingsPage from '@/views/mobile/settings/CategoryFilterSettingsPage.vue';
 import TransactionTagFilterSettingsPage from '@/views/mobile/settings/TransactionTagFilterSettingsPage.vue';
+import TransactionItemFilterSettingsPage from '@/views/mobile/settings/TransactionItemFilterSettingsPage.vue';
 
 import SettingsPage from '@/views/mobile/SettingsPage.vue';
 import ApplicationLockPage from '@/views/mobile/ApplicationLockPage.vue';
@@ -239,6 +240,11 @@ const routes: Router.RouteParameters[] = [
     {
         path: '/settings/filter/tag',
         async: asyncResolve(TransactionTagFilterSettingsPage),
+        beforeEnter: [checkLogin]
+    },
+    {
+        path: '/settings/filter/item',
+        async: asyncResolve(TransactionItemFilterSettingsPage),
         beforeEnter: [checkLogin]
     },
     {

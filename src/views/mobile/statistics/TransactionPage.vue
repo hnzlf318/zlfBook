@@ -384,6 +384,7 @@
                 <f7-actions-button :class="{ 'disabled': reloading }" @click="filterAccounts">{{ tt('Filter Accounts') }}</f7-actions-button>
                 <f7-actions-button :class="{ 'disabled': reloading }" @click="filterCategories" v-if="canUseCategoryFilter">{{ tt('Filter Transaction Categories') }}</f7-actions-button>
                 <f7-actions-button :class="{ 'disabled': reloading }" @click="filterTags" v-if="canUseTagFilter">{{ tt('Filter Transaction Tags') }}</f7-actions-button>
+                <f7-actions-button :class="{ 'disabled': reloading }" @click="filterItems">{{ tt('Filter Transaction Items') }}</f7-actions-button>
             </f7-actions-group>
             <f7-actions-group v-if="canUseKeywordFilter">
                 <f7-actions-label v-if="query.keyword">{{ query.keyword }}</f7-actions-label>
