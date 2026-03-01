@@ -2014,7 +2014,7 @@ func (s *TransactionService) GetAccountsTotalIncomeAndExpense(c core.Context, ui
 }
 
 // GetAccountsAndCategoriesTotalInflowAndOutflow returns the every accounts and categories total inflows and outflows amount by specific date range
-func (s *TransactionService) GetAccountsAndCategoriesTotalInflowAndOutflow(c core.Context, uid int64, startUnixTime int64, endUnixTime int64, tagFilters []*models.TransactionTagFilter, noTags bool, keyword string, clientTimezone *time.Location, useTransactionTimezone bool) ([]*models.Transaction, error) {
+func (s *TransactionService) GetAccountsAndCategoriesTotalInflowAndOutflow(c core.Context, uid int64, startUnixTime int64, endUnixTime int64, tagFilters []*models.TransactionTagFilter, noTags bool, itemFilters []*models.TransactionItemFilter, noItems bool, keyword string, clientTimezone *time.Location, useTransactionTimezone bool) ([]*models.Transaction, error) {
 	if uid <= 0 {
 		return nil, errs.ErrUserIdInvalid
 	}
@@ -2070,6 +2070,7 @@ func (s *TransactionService) GetAccountsAndCategoriesTotalInflowAndOutflow(c cor
 
 		sess := s.UserDataDB(uid).NewSession(c).Select("type, category_id, account_id, related_account_id, transaction_time, timezone_utc_offset, amount").Where(finalCondition, finalConditionParams...)
 		sess = s.appendFilterTagIdsConditionToQuery(sess, uid, maxTransactionTime, minTransactionTime, tagFilters, noTags)
+		sess = s.appendFilterItemIdsConditionToQuery(sess, uid, maxTransactionTime, minTransactionTime, itemFilters, noItems)
 
 		err := sess.Limit(pageCountForLoadTransactionAmounts, 0).OrderBy("transaction_time desc").Find(&transactions)
 
@@ -2136,7 +2137,7 @@ func (s *TransactionService) GetAccountsAndCategoriesTotalInflowAndOutflow(c cor
 }
 
 // GetAccountsAndCategoriesMonthlyInflowAndOutflow returns the every accounts monthly inflows and outflows amount by specific date range
-func (s *TransactionService) GetAccountsAndCategoriesMonthlyInflowAndOutflow(c core.Context, uid int64, startYear int32, startMonth int32, endYear int32, endMonth int32, tagFilters []*models.TransactionTagFilter, noTags bool, keyword string, clientTimezone *time.Location, useTransactionTimezone bool) (map[int32][]*models.Transaction, error) {
+func (s *TransactionService) GetAccountsAndCategoriesMonthlyInflowAndOutflow(c core.Context, uid int64, startYear int32, startMonth int32, endYear int32, endMonth int32, tagFilters []*models.TransactionTagFilter, noTags bool, itemFilters []*models.TransactionItemFilter, noItems bool, keyword string, clientTimezone *time.Location, useTransactionTimezone bool) (map[int32][]*models.Transaction, error) {
 	if uid <= 0 {
 		return nil, errs.ErrUserIdInvalid
 	}
@@ -2197,6 +2198,7 @@ func (s *TransactionService) GetAccountsAndCategoriesMonthlyInflowAndOutflow(c c
 
 		sess := s.UserDataDB(uid).NewSession(c).Select("type, category_id, account_id, related_account_id, transaction_time, timezone_utc_offset, amount").Where(finalCondition, finalConditionParams...)
 		sess = s.appendFilterTagIdsConditionToQuery(sess, uid, maxTransactionTime, minTransactionTime, tagFilters, noTags)
+		sess = s.appendFilterItemIdsConditionToQuery(sess, uid, maxTransactionTime, minTransactionTime, itemFilters, noItems)
 
 		err := sess.Limit(pageCountForLoadTransactionAmounts, 0).OrderBy("transaction_time desc").Find(&transactions)
 
@@ -2770,6 +2772,56 @@ func (s *TransactionService) appendFilterTagIdsConditionToQuery(sess *xorm.Sessi
 		if tagFilter.Type == models.TRANSACTION_TAG_FILTER_HAS_ANY || tagFilter.Type == models.TRANSACTION_TAG_FILTER_HAS_ALL {
 			sess.And(builder.Or(builder.In("transaction_id", subQuery), builder.In("related_id", subQuery)))
 		} else if tagFilter.Type == models.TRANSACTION_TAG_FILTER_NOT_HAS_ANY || tagFilter.Type == models.TRANSACTION_TAG_FILTER_NOT_HAS_ALL {
+			sess.NotIn("transaction_id", subQuery).NotIn("related_id", subQuery)
+		}
+	}
+
+	return sess
+}
+
+func (s *TransactionService) appendFilterItemIdsConditionToQuery(sess *xorm.Session, uid int64, maxTransactionTime int64, minTransactionTime int64, itemFilters []*models.TransactionItemFilter, noItems bool) *xorm.Session {
+	if noItems {
+		subQueryCondition := builder.And(builder.Eq{"uid": uid}, builder.Eq{"deleted": false})
+
+		if maxTransactionTime > 0 {
+			subQueryCondition = subQueryCondition.And(builder.Lte{"transaction_time": maxTransactionTime})
+		}
+
+		if minTransactionTime > 0 {
+			subQueryCondition = subQueryCondition.And(builder.Gte{"transaction_time": minTransactionTime})
+		}
+
+		subQuery := builder.Select("transaction_id").From("transaction_item_index").Where(subQueryCondition)
+		sess.NotIn("transaction_id", subQuery).NotIn("related_id", subQuery)
+		return sess
+	}
+
+	if len(itemFilters) < 1 {
+		return sess
+	}
+
+	for i := 0; i < len(itemFilters); i++ {
+		itemFilter := itemFilters[i]
+		subQueryCondition := builder.And(builder.Eq{"uid": uid}, builder.Eq{"deleted": false})
+
+		if maxTransactionTime > 0 {
+			subQueryCondition = subQueryCondition.And(builder.Lte{"transaction_time": maxTransactionTime})
+		}
+
+		if minTransactionTime > 0 {
+			subQueryCondition = subQueryCondition.And(builder.Gte{"transaction_time": minTransactionTime})
+		}
+
+		subQueryCondition = subQueryCondition.And(builder.In("item_id", itemFilter.ItemIds))
+		subQuery := builder.Select("transaction_id").From("transaction_item_index").Where(subQueryCondition)
+
+		if itemFilter.Type == models.TRANSACTION_ITEM_FILTER_HAS_ALL || itemFilter.Type == models.TRANSACTION_ITEM_FILTER_NOT_HAS_ALL {
+			subQuery = subQuery.GroupBy("transaction_id").Having(fmt.Sprintf("COUNT(DISTINCT item_id) >= %d", len(itemFilter.ItemIds)))
+		}
+
+		if itemFilter.Type == models.TRANSACTION_ITEM_FILTER_HAS_ANY || itemFilter.Type == models.TRANSACTION_ITEM_FILTER_HAS_ALL {
+			sess.And(builder.Or(builder.In("transaction_id", subQuery), builder.In("related_id", subQuery)))
+		} else if itemFilter.Type == models.TRANSACTION_ITEM_FILTER_NOT_HAS_ANY || itemFilter.Type == models.TRANSACTION_ITEM_FILTER_NOT_HAS_ALL {
 			sess.NotIn("transaction_id", subQuery).NotIn("related_id", subQuery)
 		}
 	}

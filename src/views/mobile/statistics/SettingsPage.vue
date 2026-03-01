@@ -1,5 +1,5 @@
 <template>
-    <f7-page>
+    <f7-page class="page-navbar-bottom">
         <f7-navbar :title="tt('Statistics Settings')" :back-link="tt('Back')"></f7-navbar>
 
         <f7-block-title class="margin-top">{{ tt('Common Settings') }}</f7-block-title>

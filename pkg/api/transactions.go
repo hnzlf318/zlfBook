@@ -511,8 +511,20 @@ func (a *TransactionsApi) TransactionStatisticsHandler(c *core.WebContext) (any,
 		}
 	}
 
+	noItems := statisticReq.ItemFilter == models.TransactionNoItemFilterValue
+	var itemFilters []*models.TransactionItemFilter
+
+	if !noItems {
+		itemFilters, err = models.ParseTransactionItemFilter(statisticReq.ItemFilter)
+
+		if err != nil {
+			log.Warnf(c, "[transactions.TransactionStatisticsHandler] parse transaction item filters error, because %s", err.Error())
+			return nil, errs.Or(err, errs.ErrOperationFailed)
+		}
+	}
+
 	uid := c.GetCurrentUid()
-	totalAmounts, err := a.transactions.GetAccountsAndCategoriesTotalInflowAndOutflow(c, uid, statisticReq.StartTime, statisticReq.EndTime, tagFilters, noTags, statisticReq.Keyword, clientTimezone, statisticReq.UseTransactionTimezone)
+	totalAmounts, err := a.transactions.GetAccountsAndCategoriesTotalInflowAndOutflow(c, uid, statisticReq.StartTime, statisticReq.EndTime, tagFilters, noTags, itemFilters, noItems, statisticReq.Keyword, clientTimezone, statisticReq.UseTransactionTimezone)
 
 	if err != nil {
 		log.Errorf(c, "[transactions.TransactionStatisticsHandler] failed to get accounts and categories total income and expense for user \"uid:%d\", because %s", uid, err.Error())
@@ -579,8 +591,20 @@ func (a *TransactionsApi) TransactionStatisticsTrendsHandler(c *core.WebContext)
 		}
 	}
 
+	noItems := statisticTrendsReq.ItemFilter == models.TransactionNoItemFilterValue
+	var itemFilters []*models.TransactionItemFilter
+
+	if !noItems {
+		itemFilters, err = models.ParseTransactionItemFilter(statisticTrendsReq.ItemFilter)
+
+		if err != nil {
+			log.Warnf(c, "[transactions.TransactionStatisticsTrendsHandler] parse transaction item filters error, because %s", err.Error())
+			return nil, errs.Or(err, errs.ErrOperationFailed)
+		}
+	}
+
 	uid := c.GetCurrentUid()
-	allMonthlyTotalAmounts, err := a.transactions.GetAccountsAndCategoriesMonthlyInflowAndOutflow(c, uid, startYear, startMonth, endYear, endMonth, tagFilters, noTags, statisticTrendsReq.Keyword, clientTimezone, statisticTrendsReq.UseTransactionTimezone)
+	allMonthlyTotalAmounts, err := a.transactions.GetAccountsAndCategoriesMonthlyInflowAndOutflow(c, uid, startYear, startMonth, endYear, endMonth, tagFilters, noTags, itemFilters, noItems, statisticTrendsReq.Keyword, clientTimezone, statisticTrendsReq.UseTransactionTimezone)
 
 	if err != nil {
 		log.Errorf(c, "[transactions.TransactionStatisticsTrendsHandler] failed to get accounts and categories total income and expense for user \"uid:%d\", because %s", uid, err.Error())
