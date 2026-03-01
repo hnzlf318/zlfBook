@@ -382,6 +382,18 @@ func (a *TransactionsApi) TransactionListAllHandler(c *core.WebContext) (any, *e
 		}
 	}
 
+	noItems := transactionAllListReq.ItemFilter == models.TransactionNoItemFilterValue
+	var itemFilters []*models.TransactionItemFilter
+
+	if !noItems {
+		itemFilters, err = models.ParseTransactionItemFilter(transactionAllListReq.ItemFilter)
+
+		if err != nil {
+			log.Warnf(c, "[transactions.TransactionListAllHandler] parse transaction item filters error, because %s", err.Error())
+			return nil, errs.Or(err, errs.ErrOperationFailed)
+		}
+	}
+
 	maxTransactionTime := int64(math.MaxInt64)
 	minTransactionTime := int64(0)
 
@@ -393,7 +405,7 @@ func (a *TransactionsApi) TransactionListAllHandler(c *core.WebContext) (any, *e
 		minTransactionTime = utils.GetMinTransactionTimeFromUnixTime(transactionAllListReq.StartTime)
 	}
 
-	allTransactions, err := a.transactions.GetAllSpecifiedTransactions(c, uid, maxTransactionTime, minTransactionTime, transactionAllListReq.Type, allCategoryIds, allAccountIds, tagFilters, noTags, transactionAllListReq.AmountFilter, transactionAllListReq.Keyword, pageCountForDataExport, true)
+	allTransactions, err := a.transactions.GetAllSpecifiedTransactions(c, uid, maxTransactionTime, minTransactionTime, transactionAllListReq.Type, allCategoryIds, allAccountIds, tagFilters, noTags, itemFilters, noItems, transactionAllListReq.AmountFilter, transactionAllListReq.Keyword, pageCountForDataExport, true)
 
 	if err != nil {
 		log.Errorf(c, "[transactions.TransactionListAllHandler] failed to get all transactions for user \"uid:%d\", because %s", uid, err.Error())

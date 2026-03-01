@@ -441,6 +441,18 @@ func (a *DataManagementsApi) getExportedFileContent(c *core.WebContext, fileType
 		}
 	}
 
+	noItems := exportTransactionDataReq.ItemFilter == models.TransactionNoItemFilterValue
+	var itemFilters []*models.TransactionItemFilter
+
+	if !noItems {
+		itemFilters, err = models.ParseTransactionItemFilter(exportTransactionDataReq.ItemFilter)
+
+		if err != nil {
+			log.Warnf(c, "[data_managements.getExportedFileContent] parse transaction item filters error, because %s", err.Error())
+			return nil, "", errs.Or(err, errs.ErrOperationFailed)
+		}
+	}
+
 	maxTransactionTime := int64(math.MaxInt64)
 	minTransactionTime := int64(0)
 
@@ -452,7 +464,7 @@ func (a *DataManagementsApi) getExportedFileContent(c *core.WebContext, fileType
 		minTransactionTime = utils.GetMinTransactionTimeFromUnixTime(exportTransactionDataReq.MinTime)
 	}
 
-	allTransactions, err := a.transactions.GetAllSpecifiedTransactions(c, uid, maxTransactionTime, minTransactionTime, exportTransactionDataReq.Type, allCategoryIds, allAccountIds, tagFilters, noTags, exportTransactionDataReq.AmountFilter, exportTransactionDataReq.Keyword, pageCountForDataExport, true)
+	allTransactions, err := a.transactions.GetAllSpecifiedTransactions(c, uid, maxTransactionTime, minTransactionTime, exportTransactionDataReq.Type, allCategoryIds, allAccountIds, tagFilters, noTags, itemFilters, noItems, exportTransactionDataReq.AmountFilter, exportTransactionDataReq.Keyword, pageCountForDataExport, true)
 
 	if err != nil {
 		log.Errorf(c, "[data_managements.getExportedFileContent] failed to all transactions user \"uid:%d\", because %s", uid, err.Error())
