@@ -502,11 +502,26 @@ const showMoreActionSheet = ref<boolean>(false);
 const textDirection = computed<TextDirection>(() => getCurrentLanguageTextDirection());
 
 const allChartTypes = computed<TypeAndDisplayName[]>(() => {
-    if (analysisType.value === StatisticsAnalysisType.CategoricalAnalysis) {
-        return getAllCategoricalChartTypes();
-    } else {
+    if (analysisType.value !== StatisticsAnalysisType.CategoricalAnalysis) {
         return [];
     }
+
+    const baseTypes = getAllCategoricalChartTypes();
+
+    // 在“一级分类支出”视图下，将图表类型按钮文案改成“项目 / 标签”
+    if (query.value.chartDataType === ChartDataType.ExpenseByPrimaryCategory.type) {
+        return baseTypes.map((t) => {
+            if (t.type === CategoricalChartType.Pie.type) {
+                return { ...t, displayName: tt('Transaction Items') };
+            } else if (t.type === CategoricalChartType.Bar.type) {
+                return { ...t, displayName: tt('Tags') };
+            }
+
+            return t;
+        });
+    }
+
+    return baseTypes;
 });
 
 const queryChartType = computed<number | undefined>({
