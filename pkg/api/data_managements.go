@@ -497,15 +497,3 @@ func (a *DataManagementsApi) getFileName(user *models.User, clientTimezone *time
 
 	return fmt.Sprintf("%s_%s.%s", user.Username, currentTime, fileExtension)
 }
-
-	return result, fileName, nil
-}
-
-func (a *DataManagementsApi) getFileName(user *models.User, clientTimezone *time.Location, fileExtension string) string {
-	currentTime := utils.FormatUnixTimeToLongDateTimeWithoutSecond(time.Now().Unix(), clientTimezone)
-	currentTime = strings.Replace(currentTime, "-", "_", -1)
-	currentTime = strings.Replace(currentTime, " ", "_", -1)
-	currentTime = strings.Replace(currentTime, ":", "_", -1)
-
-	return fmt.Sprintf("%s_%s.%s", user.Username, currentTime, fileExtension)
-}

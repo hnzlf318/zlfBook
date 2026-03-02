@@ -2280,15 +2280,3 @@ func (a *TransactionsApi) createNewTransactionModel(uid int64, transactionCreate
 
 	return transaction
 }
-
-		transaction.RelatedAccountId = transactionCreateReq.DestinationAccountId
-		transaction.RelatedAccountAmount = transactionCreateReq.DestinationAmount
-	}
-
-	if transactionCreateReq.GeoLocation != nil {
-		transaction.GeoLongitude = transactionCreateReq.GeoLocation.Longitude
-		transaction.GeoLatitude = transactionCreateReq.GeoLocation.Latitude
-	}
-
-	return transaction
-}
