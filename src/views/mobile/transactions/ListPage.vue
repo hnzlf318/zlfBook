@@ -2031,7 +2031,7 @@ html[dir="rtl"] .list.transaction-info-list li.transaction-info .transaction-foo
     font-size: var(--ebk-transaction-calendar-amount-font-size);
 }
 .page-content.ptr-content.infinite-scroll-content{
-    height: 97%;
+    height: 95%;
 }
 
 </style>
