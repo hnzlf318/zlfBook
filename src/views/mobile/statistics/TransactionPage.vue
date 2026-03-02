@@ -945,7 +945,18 @@ function filterItems(): void {
 
 // 以下为“项目 / 标签”弹出菜单的本地 UI 状态切换，不改变统计过滤逻辑
 function toggleItemSelectAll(): void {
-    itemFilterSelectAll.value = !itemFilterSelectAll.value;
+    const selectAll = !itemFilterSelectAll.value;
+    itemFilterSelectAll.value = selectAll;
+
+    const newState: Record<string, boolean> = {};
+
+    if (selectAll) {
+        for (const item of allTransactionItems.value) {
+            newState[item.id] = true;
+        }
+    }
+
+    itemFilterSelectedIds.value = newState;
 }
 
 function toggleItemSelection(itemId: string): void {
@@ -953,7 +964,18 @@ function toggleItemSelection(itemId: string): void {
 }
 
 function toggleTagSelectAll(): void {
-    tagFilterSelectAll.value = !tagFilterSelectAll.value;
+    const selectAll = !tagFilterSelectAll.value;
+    tagFilterSelectAll.value = selectAll;
+
+    const newState: Record<string, boolean> = {};
+
+    if (selectAll) {
+        for (const tag of allTransactionTags.value) {
+            newState[tag.id] = true;
+        }
+    }
+
+    tagFilterSelectedIds.value = newState;
 }
 
 function toggleTagSelection(tagId: string): void {
