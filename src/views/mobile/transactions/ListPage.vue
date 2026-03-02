@@ -2030,4 +2030,7 @@ html[dir="rtl"] .list.transaction-info-list li.transaction-info .transaction-foo
 .transaction-calendar-container .dp__main .dp__calendar .dp__calendar_row > .dp__calendar_item .transaction-calendar-daily-amounts > span.transaction-calendar-daily-amount {
     font-size: var(--ebk-transaction-calendar-amount-font-size);
 }
+.page-content ptr-content infinite-scroll-content{
+    height: 80%;
+}
 </style>
