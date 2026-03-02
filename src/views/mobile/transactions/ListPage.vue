@@ -1492,53 +1492,45 @@ function changeTagFilter(tagFilter: string): void {
 
 function applyItemFilterFromSelection(): void {
     const includeItemIds: string[] = [];
-    const excludeItemIds: string[] = [];
 
     for (const item of allTransactionItemsList.value) {
         if (itemFilterSelectedIds.value[item.id]) {
             includeItemIds.push(item.id);
-        } else {
-            excludeItemIds.push(item.id);
         }
     }
 
-    const itemFilters: TransactionItemFilter[] = [];
-
-    if (includeItemIds.length > 0) {
-        itemFilters.push(TransactionItemFilter.create(includeItemIds, TransactionTagFilterType.HasAny));
+    // 没有任意项目被选中，则清空项目过滤
+    if (includeItemIds.length === 0) {
+        changeItemFilter('');
+        return;
     }
 
-    if (excludeItemIds.length > 0) {
-        itemFilters.push(TransactionItemFilter.create(excludeItemIds, TransactionTagFilterType.NotHasAny));
-    }
+    // 选中的项目表示“包含这些项目中的任意一个”
+    const itemFilter = TransactionItemFilter.create(includeItemIds, TransactionTagFilterType.HasAny);
+    const itemFilterText = TransactionItemFilter.toTextualItemFilters([itemFilter]);
 
-    const itemFilterText = TransactionItemFilter.toTextualItemFilters(itemFilters);
     changeItemFilter(itemFilterText);
 }
 
 function applyTagFilterFromSelection(): void {
     const includeTagIds: string[] = [];
-    const excludeTagIds: string[] = [];
 
     for (const tag of allTransactionTagsList.value) {
         if (tagFilterSelectedIds.value[tag.id]) {
             includeTagIds.push(tag.id);
-        } else {
-            excludeTagIds.push(tag.id);
         }
     }
 
-    const tagFilters: TransactionTagFilter[] = [];
-
-    if (includeTagIds.length > 0) {
-        tagFilters.push(TransactionTagFilter.create(includeTagIds, TransactionTagFilterType.HasAny));
+    // 没有任意标签被选中，则清空标签过滤
+    if (includeTagIds.length === 0) {
+        changeTagFilter('');
+        return;
     }
 
-    if (excludeTagIds.length > 0) {
-        tagFilters.push(TransactionTagFilter.create(excludeTagIds, TransactionTagFilterType.NotHasAny));
-    }
+    // 选中的标签表示“包含这些标签中的任意一个”
+    const tagFilter = TransactionTagFilter.create(includeTagIds, TransactionTagFilterType.HasAny);
+    const tagFilterText = TransactionTagFilter.toTextualTagFilters([tagFilter]);
 
-    const tagFilterText = TransactionTagFilter.toTextualTagFilters(tagFilters);
     changeTagFilter(tagFilterText);
 }
 
