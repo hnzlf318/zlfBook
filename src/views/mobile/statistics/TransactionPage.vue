@@ -991,33 +991,30 @@ function toggleItemSelectAll(): void {
 
     itemFilterSelectedIds.value = newState;
 
-    // 更新统计中的 itemFilter（选中为包含，未选中为排除）
+    // 更新统计中的 itemFilter（选中为“包含任意一个选中的项目”）
     const includeItemIds: string[] = [];
-    const excludeItemIds: string[] = [];
 
     for (const item of allTransactionItems.value) {
         if (itemFilterSelectedIds.value[item.id]) {
             includeItemIds.push(item.id);
-        } else {
-            excludeItemIds.push(item.id);
         }
     }
 
-    const itemFilters: TransactionItemFilter[] = [];
+    let changed: boolean;
 
-    if (includeItemIds.length > 0) {
-        itemFilters.push(TransactionItemFilter.create(includeItemIds, TransactionTagFilterType.HasAny));
+    if (includeItemIds.length === 0) {
+        // 没有任何项目被选中，清空项目过滤
+        changed = statisticsStore.updateTransactionStatisticsFilter({
+            itemFilter: ''
+        });
+    } else {
+        const itemFilter = TransactionItemFilter.create(includeItemIds, TransactionTagFilterType.HasAny);
+        const itemFilterText = TransactionItemFilter.toTextualItemFilters([itemFilter]);
+
+        changed = statisticsStore.updateTransactionStatisticsFilter({
+            itemFilter: itemFilterText
+        });
     }
-
-    if (excludeItemIds.length > 0) {
-        itemFilters.push(TransactionItemFilter.create(excludeItemIds, TransactionTagFilterType.NotHasAny));
-    }
-
-    const itemFilterText = TransactionItemFilter.toTextualItemFilters(itemFilters);
-
-    const changed = statisticsStore.updateTransactionStatisticsFilter({
-        itemFilter: itemFilterText
-    });
 
     if (changed) {
         statisticsStore.updateTransactionStatisticsInvalidState(true);
@@ -1029,33 +1026,30 @@ function toggleItemSelection(itemId: string): void {
     itemFilterSelectedIds.value[itemId] = !itemFilterSelectedIds.value[itemId];
 
     const includeItemIds: string[] = [];
-    const excludeItemIds: string[] = [];
 
     for (const item of allTransactionItems.value) {
         if (itemFilterSelectedIds.value[item.id]) {
             includeItemIds.push(item.id);
-        } else {
-            excludeItemIds.push(item.id);
         }
     }
 
     itemFilterSelectAll.value = includeItemIds.length === allTransactionItems.value.length && allTransactionItems.value.length > 0;
 
-    const itemFilters: TransactionItemFilter[] = [];
+    let changed: boolean;
 
-    if (includeItemIds.length > 0) {
-        itemFilters.push(TransactionItemFilter.create(includeItemIds, TransactionTagFilterType.HasAny));
+    if (includeItemIds.length === 0) {
+        // 没有任何项目被选中，清空项目过滤
+        changed = statisticsStore.updateTransactionStatisticsFilter({
+            itemFilter: ''
+        });
+    } else {
+        const itemFilter = TransactionItemFilter.create(includeItemIds, TransactionTagFilterType.HasAny);
+        const itemFilterText = TransactionItemFilter.toTextualItemFilters([itemFilter]);
+
+        changed = statisticsStore.updateTransactionStatisticsFilter({
+            itemFilter: itemFilterText
+        });
     }
-
-    if (excludeItemIds.length > 0) {
-        itemFilters.push(TransactionItemFilter.create(excludeItemIds, TransactionTagFilterType.NotHasAny));
-    }
-
-    const itemFilterText = TransactionItemFilter.toTextualItemFilters(itemFilters);
-
-    const changed = statisticsStore.updateTransactionStatisticsFilter({
-        itemFilter: itemFilterText
-    });
 
     if (changed) {
         statisticsStore.updateTransactionStatisticsInvalidState(true);
@@ -1077,33 +1071,30 @@ function toggleTagSelectAll(): void {
 
     tagFilterSelectedIds.value = newState;
 
-    // 更新统计中的 tagFilter（选中为包含，未选中为排除）
+    // 更新统计中的 tagFilter（选中为“包含任意一个选中的标签”）
     const includeTagIds: string[] = [];
-    const excludeTagIds: string[] = [];
 
     for (const tag of allTransactionTags.value) {
         if (tagFilterSelectedIds.value[tag.id]) {
             includeTagIds.push(tag.id);
-        } else {
-            excludeTagIds.push(tag.id);
         }
     }
 
-    const tagFilters: TransactionTagFilter[] = [];
+    let changed: boolean;
 
-    if (includeTagIds.length > 0) {
-        tagFilters.push(TransactionTagFilter.create(includeTagIds, TransactionTagFilterType.HasAny));
+    if (includeTagIds.length === 0) {
+        // 没有任何标签被选中，清空标签过滤
+        changed = statisticsStore.updateTransactionStatisticsFilter({
+            tagFilter: ''
+        });
+    } else {
+        const tagFilter = TransactionTagFilter.create(includeTagIds, TransactionTagFilterType.HasAny);
+        const tagFilterText = TransactionTagFilter.toTextualTagFilters([tagFilter]);
+
+        changed = statisticsStore.updateTransactionStatisticsFilter({
+            tagFilter: tagFilterText
+        });
     }
-
-    if (excludeTagIds.length > 0) {
-        tagFilters.push(TransactionTagFilter.create(excludeTagIds, TransactionTagFilterType.NotHasAny));
-    }
-
-    const tagFilterText = TransactionTagFilter.toTextualTagFilters(tagFilters);
-
-    const changed = statisticsStore.updateTransactionStatisticsFilter({
-        tagFilter: tagFilterText
-    });
 
     if (changed) {
         statisticsStore.updateTransactionStatisticsInvalidState(true);
@@ -1115,33 +1106,30 @@ function toggleTagSelection(tagId: string): void {
     tagFilterSelectedIds.value[tagId] = !tagFilterSelectedIds.value[tagId];
 
     const includeTagIds: string[] = [];
-    const excludeTagIds: string[] = [];
 
     for (const tag of allTransactionTags.value) {
         if (tagFilterSelectedIds.value[tag.id]) {
             includeTagIds.push(tag.id);
-        } else {
-            excludeTagIds.push(tag.id);
         }
     }
 
     tagFilterSelectAll.value = includeTagIds.length === allTransactionTags.value.length && allTransactionTags.value.length > 0;
 
-    const tagFilters: TransactionTagFilter[] = [];
+    let changed: boolean;
 
-    if (includeTagIds.length > 0) {
-        tagFilters.push(TransactionTagFilter.create(includeTagIds, TransactionTagFilterType.HasAny));
+    if (includeTagIds.length === 0) {
+        // 没有任何标签被选中，清空标签过滤
+        changed = statisticsStore.updateTransactionStatisticsFilter({
+            tagFilter: ''
+        });
+    } else {
+        const tagFilter = TransactionTagFilter.create(includeTagIds, TransactionTagFilterType.HasAny);
+        const tagFilterText = TransactionTagFilter.toTextualTagFilters([tagFilter]);
+
+        changed = statisticsStore.updateTransactionStatisticsFilter({
+            tagFilter: tagFilterText
+        });
     }
-
-    if (excludeTagIds.length > 0) {
-        tagFilters.push(TransactionTagFilter.create(excludeTagIds, TransactionTagFilterType.NotHasAny));
-    }
-
-    const tagFilterText = TransactionTagFilter.toTextualTagFilters(tagFilters);
-
-    const changed = statisticsStore.updateTransactionStatisticsFilter({
-        tagFilter: tagFilterText
-    });
 
     if (changed) {
         statisticsStore.updateTransactionStatisticsInvalidState(true);
