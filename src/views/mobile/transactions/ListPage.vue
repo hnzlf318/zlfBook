@@ -64,8 +64,22 @@
             <f7-link popover-open=".category-popover-menu" :class="{ 'tabbar-text-with-ellipsis': true, 'disabled': loading || query.type === 1 }">
                 <span :class="{ 'tabbar-item-changed': query.categoryIds }">{{ queryCategoryName }}</span>
             </f7-link>
+            <!-- 新增“项目”按钮：跳转到项目过滤设置 -->
+            <f7-link :class="{ 'tabbar-text-with-ellipsis': true, 'disabled': loading || allAvailableItemsCount === 0 }"
+                     @click="filterMultipleItems">
+                <span :class="{ 'tabbar-item-changed': !!query.itemFilter }">
+                    {{ tt('Transaction Items') }}
+                </span>
+            </f7-link>
             <f7-link popover-open=".account-popover-menu" :class="{ 'tabbar-text-with-ellipsis': true, 'disabled': loading }">
                 <span :class="{ 'tabbar-item-changed': query.accountIds }">{{ queryAccountName }}</span>
+            </f7-link>
+            <!-- 新增“标签”按钮：跳转到标签过滤设置 -->
+            <f7-link :class="{ 'tabbar-text-with-ellipsis': true, 'disabled': loading || allAvailableTagsCount === 0 }"
+                     @click="filterMultipleTags">
+                <span :class="{ 'tabbar-item-changed': !!query.tagFilter }">
+                    {{ tt('Tags') }}
+                </span>
             </f7-link>
             <f7-link popover-open=".more-popover-menu" :class="{ 'disabled': loading }">
                 <f7-icon f7="ellipsis_vertical" :class="{ 'tabbar-item-changed': query.type > 0 || query.amountFilter || query.tagFilter || query.itemFilter }"></f7-icon>
