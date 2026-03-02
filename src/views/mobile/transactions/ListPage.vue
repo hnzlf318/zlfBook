@@ -64,17 +64,18 @@
             <f7-link popover-open=".category-popover-menu" :class="{ 'tabbar-text-with-ellipsis': true, 'disabled': loading || query.type === 1 }">
                 <span :class="{ 'tabbar-item-changed': query.categoryIds }">{{ queryCategoryName }}</span>
             </f7-link>
-            <!-- 新增“项目”按钮：弹出项目筛选菜单 -->
+            <!-- 账户按钮保持不变 -->
+            <f7-link popover-open=".account-popover-menu" :class="{ 'tabbar-text-with-ellipsis': true, 'disabled': loading }">
+                <span :class="{ 'tabbar-item-changed': query.accountIds }">{{ queryAccountName }}</span>
+            </f7-link>
+            <!-- “项目”按钮：弹出项目筛选菜单（移动到账户右侧） -->
             <f7-link class="tabbar-text-with-ellipsis"
                      popover-open=".item-filter-popover-menu">
                 <span :class="{ 'tabbar-item-changed': !!query.itemFilter }">
                     {{ tt('Transaction Items') }}
                 </span>
             </f7-link>
-            <f7-link popover-open=".account-popover-menu" :class="{ 'tabbar-text-with-ellipsis': true, 'disabled': loading }">
-                <span :class="{ 'tabbar-item-changed': query.accountIds }">{{ queryAccountName }}</span>
-            </f7-link>
-            <!-- 新增“标签”按钮：弹出标签筛选菜单 -->
+            <!-- “标签”按钮：弹出标签筛选菜单 -->
             <f7-link class="tabbar-text-with-ellipsis"
                      popover-open=".tag-filter-popover-menu">
                 <span :class="{ 'tabbar-item-changed': !!query.tagFilter }">
