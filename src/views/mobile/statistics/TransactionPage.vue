@@ -58,6 +58,58 @@
             </f7-list>
         </f7-popover>
 
+        <!-- 项目筛选弹出菜单（仅一级分类支出时可见，先做 UI 不改统计逻辑） -->
+        <f7-popover class="item-filter-popover-menu">
+            <f7-list dividers>
+                <f7-list-item link="#" no-chevron
+                              :title="itemFilterSelectAll ? '全部不选' : '全部选择'"
+                              @click="toggleItemSelectAll">
+                    <template #after>
+                        <f7-icon class="list-item-checked-icon"
+                                 f7="checkmark_alt"
+                                 v-if="itemFilterSelectAll"></f7-icon>
+                    </template>
+                </f7-list-item>
+                <f7-list-item link="#" no-chevron
+                              :title="item.name"
+                              :key="item.id"
+                              v-for="item in allTransactionItems"
+                              @click="toggleItemSelection(item.id)">
+                    <template #after>
+                        <f7-icon class="list-item-checked-icon"
+                                 f7="checkmark_alt"
+                                 v-if="itemFilterSelectedIds[item.id]"></f7-icon>
+                    </template>
+                </f7-list-item>
+            </f7-list>
+        </f7-popover>
+
+        <!-- 标签筛选弹出菜单（仅一级分类支出时使用，先做 UI 不改统计逻辑） -->
+        <f7-popover class="tag-filter-popover-menu">
+            <f7-list dividers>
+                <f7-list-item link="#" no-chevron
+                              :title="tagFilterSelectAll ? '全部不选' : '全部选择'"
+                              @click="toggleTagSelectAll">
+                    <template #after>
+                        <f7-icon class="list-item-checked-icon"
+                                 f7="checkmark_alt"
+                                 v-if="tagFilterSelectAll"></f7-icon>
+                    </template>
+                </f7-list-item>
+                <f7-list-item link="#" no-chevron
+                              :title="tag.name"
+                              :key="tag.id"
+                              v-for="tag in allTransactionTags"
+                              @click="toggleTagSelection(tag.id)">
+                    <template #after>
+                        <f7-icon class="list-item-checked-icon"
+                                 f7="checkmark_alt"
+                                 v-if="tagFilterSelectedIds[tag.id]"></f7-icon>
+                    </template>
+                </f7-list-item>
+            </f7-list>
+        </f7-popover>
+
         <f7-card v-if="analysisType === StatisticsAnalysisType.CategoricalAnalysis && query.categoricalChartType === CategoricalChartType.Pie.type">
             <f7-card-header class="no-border display-block">
                 <div :class="{ 'statistics-chart-header': true, 'full-line': true, 'text-align-right': textDirection === TextDirection.LTR, 'text-align-left': textDirection === TextDirection.RTL}">
@@ -307,10 +359,21 @@
                      v-if="analysisType === StatisticsAnalysisType.AssetTrends">
                 <span :class="{ 'tabbar-item-changed': assetTrendsDateAggregationType !== ChartDateAggregationType.Default.type }">{{ queryAssetTrendsDateAggregationTypeName }}</span>
             </f7-link>
-            <f7-link class="tabbar-text-with-ellipsis" :key="chartType.type"
-                     v-for="chartType in allChartTypes" @click="setChartType(chartType.type)">
-                <span :class="{ 'tabbar-item-changed': queryChartType === chartType.type }">{{ chartType.displayName }}</span>
-            </f7-link>
+            <!-- 一级分类支出：右侧两个按钮改为“项目 / 标签”弹出菜单 -->
+            <template v-if="analysisType === StatisticsAnalysisType.CategoricalAnalysis && query.chartDataType === ChartDataType.ExpenseByPrimaryCategory.type">
+                <f7-link class="tabbar-text-with-ellipsis" popover-open=".item-filter-popover-menu">
+                    <span>项目</span>
+                </f7-link>
+                <f7-link class="tabbar-text-with-ellipsis" popover-open=".tag-filter-popover-menu">
+                    <span>标签</span>
+                </f7-link>
+            </template>
+            <template v-else>
+                <f7-link class="tabbar-text-with-ellipsis" :key="chartType.type"
+                         v-for="chartType in allChartTypes" @click="setChartType(chartType.type)">
+                    <span :class="{ 'tabbar-item-changed': queryChartType === chartType.type }">{{ chartType.displayName }}</span>
+                </f7-link>
+            </template>
         </f7-toolbar>
 
         <f7-popover class="date-popover-menu"
@@ -409,6 +472,8 @@ import { useStatisticsTransactionPageBase } from '@/views/base/statistics/Statis
 
 import { useAccountsStore } from '@/stores/account.ts';
 import { useTransactionCategoriesStore } from '@/stores/transactionCategory.ts';
+import { useTransactionTagsStore } from '@/stores/transactionTag.ts';
+import { useTransactionItemsStore } from '@/stores/transactionItem.ts';
 import { useStatisticsStore } from '@/stores/statistics.ts';
 
 import type { TypeAndDisplayName } from '@/core/base.ts';
@@ -491,6 +556,8 @@ const {
 
 const accountsStore = useAccountsStore();
 const transactionCategoriesStore = useTransactionCategoriesStore();
+const transactionTagsStore = useTransactionTagsStore();
+const transactionItemsStore = useTransactionItemsStore();
 const statisticsStore = useStatisticsStore();
 
 const loadingError = ref<unknown | null>(null);
@@ -500,6 +567,14 @@ const showCustomMonthRangeSheet = ref<boolean>(false);
 const showMoreActionSheet = ref<boolean>(false);
 
 const textDirection = computed<TextDirection>(() => getCurrentLanguageTextDirection());
+const allTransactionItems = computed(() => Object.values(transactionItemsStore.allTransactionItemsMap));
+const allTransactionTags = computed(() => Object.values(transactionTagsStore.allTransactionTagsMap));
+
+// 仅用于 UI 的本地选择状态，不影响统计逻辑
+const itemFilterSelectAll = ref<boolean>(false);
+const itemFilterSelectedIds = ref<Record<string, boolean>>({});
+const tagFilterSelectAll = ref<boolean>(false);
+const tagFilterSelectedIds = ref<Record<string, boolean>>({});
 
 const allChartTypes = computed<TypeAndDisplayName[]>(() => {
     if (analysisType.value !== StatisticsAnalysisType.CategoricalAnalysis) {
@@ -550,7 +625,9 @@ function init(): void {
 
     Promise.all([
         accountsStore.loadAllAccounts({ force: false }),
-        transactionCategoriesStore.loadAllCategories({ force: false })
+        transactionCategoriesStore.loadAllCategories({ force: false }),
+        transactionTagsStore.loadAllTags({ force: false }),
+        transactionItemsStore.loadAllItems({ force: false })
     ]).then(() => {
         if (analysisType.value === StatisticsAnalysisType.CategoricalAnalysis) {
             return statisticsStore.loadCategoricalAnalysis({
@@ -864,6 +941,23 @@ function filterTags(): void {
 
 function filterItems(): void {
     props.f7router.navigate('/settings/filter/item?type=statisticsCurrent');
+}
+
+// 以下为“项目 / 标签”弹出菜单的本地 UI 状态切换，不改变统计过滤逻辑
+function toggleItemSelectAll(): void {
+    itemFilterSelectAll.value = !itemFilterSelectAll.value;
+}
+
+function toggleItemSelection(itemId: string): void {
+    itemFilterSelectedIds.value[itemId] = !itemFilterSelectedIds.value[itemId];
+}
+
+function toggleTagSelectAll(): void {
+    tagFilterSelectAll.value = !tagFilterSelectAll.value;
+}
+
+function toggleTagSelection(tagId: string): void {
+    tagFilterSelectedIds.value[tagId] = !tagFilterSelectedIds.value[tagId];
 }
 
 function filterDescription(): void {
