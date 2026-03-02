@@ -1661,6 +1661,19 @@ html[dir="rtl"] .list.transaction-info-list li.transaction-info .transaction-day
     text-overflow: ellipsis;
 }
 
+.list.transaction-info-list li.transaction-info .chip.transaction-item {
+    --f7-chip-media-size: var(--ebk-transaction-tag-chip-media-size);
+    --f7-chip-media-font-size: var(--ebk-transaction-tag-chip-font-size);
+    --f7-chip-font-size: var(--ebk-transaction-tag-chip-font-size);
+    --f7-chip-height: var(--ebk-transaction-tag-chip-height);
+    --f7-chip-text-color: var(--f7-list-item-footer-text-color);
+    --f7-chip-bg-color: var(--ebk-transaction-tag-chip-bg-color);
+    margin-inline-end: 4px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .list.transaction-info-list li.transaction-info .chip.transaction-tag .chip-media+.chip-label {
     margin-inline-start: 0;
 }
