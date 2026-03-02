@@ -64,16 +64,22 @@
             <f7-link popover-open=".category-popover-menu" :class="{ 'tabbar-text-with-ellipsis': true, 'disabled': loading || query.type === 1 }">
                 <span :class="{ 'tabbar-item-changed': query.categoryIds }">{{ queryCategoryName }}</span>
             </f7-link>
-            <!-- 新增“项目”按钮：仅展示，不增加逻辑 -->
-            <f7-link class="tabbar-text-with-ellipsis">
-                <span>{{ tt('Transaction Items') }}</span>
+            <!-- 新增“项目”按钮：弹出项目筛选菜单 -->
+            <f7-link class="tabbar-text-with-ellipsis"
+                     popover-open=".item-filter-popover-menu">
+                <span :class="{ 'tabbar-item-changed': !!query.itemFilter }">
+                    {{ tt('Transaction Items') }}
+                </span>
             </f7-link>
             <f7-link popover-open=".account-popover-menu" :class="{ 'tabbar-text-with-ellipsis': true, 'disabled': loading }">
                 <span :class="{ 'tabbar-item-changed': query.accountIds }">{{ queryAccountName }}</span>
             </f7-link>
-            <!-- 新增“标签”按钮：仅展示，不增加逻辑 -->
-            <f7-link class="tabbar-text-with-ellipsis">
-                <span>{{ tt('Tags') }}</span>
+            <!-- 新增“标签”按钮：弹出标签筛选菜单 -->
+            <f7-link class="tabbar-text-with-ellipsis"
+                     popover-open=".tag-filter-popover-menu">
+                <span :class="{ 'tabbar-item-changed': !!query.tagFilter }">
+                    {{ tt('Tags') }}
+                </span>
             </f7-link>
             <f7-link popover-open=".more-popover-menu" :class="{ 'disabled': loading }">
                 <f7-icon f7="ellipsis_vertical" :class="{ 'tabbar-item-changed': query.type > 0 || query.amountFilter || query.tagFilter || query.itemFilter }"></f7-icon>
@@ -660,6 +666,64 @@
             </f7-list>
         </f7-popover>
 
+        <!-- 项目筛选弹出菜单（与统计页“一级分类支出”项目菜单一致） -->
+        <f7-popover class="item-filter-popover-menu">
+            <f7-list dividers>
+                <f7-list-item link="#" no-chevron
+                              :title="itemFilterSelectAll ? '全部不选' : '全部选择'"
+                              @click="toggleItemSelectAll">
+                    <template #after>
+                        <f7-icon class="list-item-checked-icon"
+                                 f7="checkmark_alt"
+                                 v-if="itemFilterSelectAll"></f7-icon>
+                        <f7-icon class="list-item-checked-icon"
+                                 f7="minus"
+                                 v-else-if="itemFilterIndeterminate"></f7-icon>
+                    </template>
+                </f7-list-item>
+                <f7-list-item link="#" no-chevron
+                              :title="item.name"
+                              :key="item.id"
+                              v-for="item in allTransactionItemsList"
+                              @click="toggleItemSelection(item.id)">
+                    <template #after>
+                        <f7-icon class="list-item-checked-icon"
+                                 f7="checkmark_alt"
+                                 v-if="itemFilterSelectedIds[item.id]"></f7-icon>
+                    </template>
+                </f7-list-item>
+            </f7-list>
+        </f7-popover>
+
+        <!-- 标签筛选弹出菜单（与统计页“一级分类支出”标签菜单一致） -->
+        <f7-popover class="tag-filter-popover-menu">
+            <f7-list dividers>
+                <f7-list-item link="#" no-chevron
+                              :title="tagFilterSelectAll ? '全部不选' : '全部选择'"
+                              @click="toggleTagSelectAll">
+                    <template #after>
+                        <f7-icon class="list-item-checked-icon"
+                                 f7="checkmark_alt"
+                                 v-if="tagFilterSelectAll"></f7-icon>
+                        <f7-icon class="list-item-checked-icon"
+                                 f7="minus"
+                                 v-else-if="tagFilterIndeterminate"></f7-icon>
+                    </template>
+                </f7-list-item>
+                <f7-list-item link="#" no-chevron
+                              :title="tag.name"
+                              :key="tag.id"
+                              v-for="tag in allTransactionTagsList"
+                              @click="toggleTagSelection(tag.id)">
+                    <template #after>
+                        <f7-icon class="list-item-checked-icon"
+                                 f7="checkmark_alt"
+                                 v-if="tagFilterSelectedIds[tag.id]"></f7-icon>
+                    </template>
+                </f7-list-item>
+            </f7-list>
+        </f7-popover>
+
         <f7-actions close-by-outside-click close-on-escape :opened="showDeleteActionSheet" @actions:closed="showDeleteActionSheet = false">
             <f7-actions-group>
                 <f7-actions-label>{{ tt('Are you sure you want to delete this transaction?') }}</f7-actions-label>
@@ -707,7 +771,7 @@ import {
     DateRange
 } from '@/core/datetime.ts';
 import { type NumeralSystem, AmountFilterType } from '@/core/numeral.ts';
-import { TransactionType } from '@/core/transaction.ts';
+import { TransactionType, TransactionTagFilterType } from '@/core/transaction.ts';
 import type { TransactionCategory } from '@/models/transaction_category.ts';
 import { type Transaction, TransactionTagFilter, TransactionItemFilter } from '@/models/transaction.ts';
 
@@ -817,6 +881,8 @@ const transactionItemsStore = useTransactionItemsStore();
 const transactionsStore = useTransactionsStore();
 
 const allTransactionItemsMap = computed(() => unref(transactionItemsStore.allTransactionItemsMap) ?? {});
+const allTransactionItemsList = computed(() => Object.values(allTransactionItemsMap.value));
+const allTransactionTagsList = computed(() => Object.values(allTransactionTags.value));
 
 const loadingError = ref<unknown | null>(null);
 const loadingMore = ref<boolean>(false);
@@ -831,6 +897,40 @@ const showDeleteActionSheet = ref<boolean>(false);
 const textDirection = computed<TextDirection>(() => getCurrentLanguageTextDirection());
 const numeralSystem = computed<NumeralSystem>(() => getCurrentNumeralSystemType());
 const isDarkMode = computed<boolean>(() => environmentsStore.framework7DarkMode || false);
+
+// “项目 / 标签”弹出菜单本地选择状态
+const itemFilterSelectAll = ref<boolean>(false);
+const itemFilterSelectedIds = ref<Record<string, boolean>>({});
+const tagFilterSelectAll = ref<boolean>(false);
+const tagFilterSelectedIds = ref<Record<string, boolean>>({});
+
+const itemFilterIndeterminate = computed<boolean>(() => {
+    const total = allTransactionItemsList.value.length;
+    if (total === 0) return false;
+
+    let selected = 0;
+    for (const item of allTransactionItemsList.value) {
+        if (itemFilterSelectedIds.value[item.id]) {
+            selected++;
+        }
+    }
+
+    return selected > 0 && selected < total;
+});
+
+const tagFilterIndeterminate = computed<boolean>(() => {
+    const total = allTransactionTagsList.value.length;
+    if (total === 0) return false;
+
+    let selected = 0;
+    for (const tag of allTransactionTagsList.value) {
+        if (tagFilterSelectedIds.value[tag.id]) {
+            selected++;
+        }
+    }
+
+    return selected > 0 && selected < total;
+});
 
 const transactions = computed<TransactionMonthList[]>(() => {
     if (loading.value) {
@@ -1389,8 +1489,56 @@ function changeTagFilter(tagFilter: string): void {
     }
 }
 
-function filterMultipleTags(): void {
-    props.f7router.navigate('/settings/filter/tag?type=transactionListCurrent');
+function applyItemFilterFromSelection(): void {
+    const includeItemIds: string[] = [];
+    const excludeItemIds: string[] = [];
+
+    for (const item of allTransactionItemsList.value) {
+        if (itemFilterSelectedIds.value[item.id]) {
+            includeItemIds.push(item.id);
+        } else {
+            excludeItemIds.push(item.id);
+        }
+    }
+
+    const itemFilters: TransactionItemFilter[] = [];
+
+    if (includeItemIds.length > 0) {
+        itemFilters.push(TransactionItemFilter.create(includeItemIds, TransactionTagFilterType.HasAny));
+    }
+
+    if (excludeItemIds.length > 0) {
+        itemFilters.push(TransactionItemFilter.create(excludeItemIds, TransactionTagFilterType.NotHasAny));
+    }
+
+    const itemFilterText = TransactionItemFilter.toTextualItemFilters(itemFilters);
+    changeItemFilter(itemFilterText);
+}
+
+function applyTagFilterFromSelection(): void {
+    const includeTagIds: string[] = [];
+    const excludeTagIds: string[] = [];
+
+    for (const tag of allTransactionTagsList.value) {
+        if (tagFilterSelectedIds.value[tag.id]) {
+            includeTagIds.push(tag.id);
+        } else {
+            excludeTagIds.push(tag.id);
+        }
+    }
+
+    const tagFilters: TransactionTagFilter[] = [];
+
+    if (includeTagIds.length > 0) {
+        tagFilters.push(TransactionTagFilter.create(includeTagIds, TransactionTagFilterType.HasAny));
+    }
+
+    if (excludeTagIds.length > 0) {
+        tagFilters.push(TransactionTagFilter.create(excludeTagIds, TransactionTagFilterType.NotHasAny));
+    }
+
+    const tagFilterText = TransactionTagFilter.toTextualTagFilters(tagFilters);
+    changeTagFilter(tagFilterText);
 }
 
 function changeItemFilter(itemFilter: string): void {
@@ -1407,8 +1555,76 @@ function changeItemFilter(itemFilter: string): void {
     }
 }
 
+function filterMultipleTags(): void {
+    props.f7router.navigate('/settings/filter/tag?type=transactionListCurrent');
+}
+
 function filterMultipleItems(): void {
     props.f7router.navigate('/settings/filter/item?type=transactionListCurrent');
+}
+
+function toggleItemSelectAll(): void {
+    const selectAll = !itemFilterSelectAll.value;
+    itemFilterSelectAll.value = selectAll;
+
+    const newState: Record<string, boolean> = {};
+
+    if (selectAll) {
+        for (const item of allTransactionItemsList.value) {
+            newState[item.id] = true;
+        }
+    }
+
+    itemFilterSelectedIds.value = newState;
+    applyItemFilterFromSelection();
+}
+
+function toggleItemSelection(itemId: string): void {
+    itemFilterSelectedIds.value[itemId] = !itemFilterSelectedIds.value[itemId];
+
+    const total = allTransactionItemsList.value.length;
+    let selected = 0;
+
+    for (const item of allTransactionItemsList.value) {
+        if (itemFilterSelectedIds.value[item.id]) {
+            selected++;
+        }
+    }
+
+    itemFilterSelectAll.value = selected === total && total > 0;
+    applyItemFilterFromSelection();
+}
+
+function toggleTagSelectAll(): void {
+    const selectAll = !tagFilterSelectAll.value;
+    tagFilterSelectAll.value = selectAll;
+
+    const newState: Record<string, boolean> = {};
+
+    if (selectAll) {
+        for (const tag of allTransactionTagsList.value) {
+            newState[tag.id] = true;
+        }
+    }
+
+    tagFilterSelectedIds.value = newState;
+    applyTagFilterFromSelection();
+}
+
+function toggleTagSelection(tagId: string): void {
+    tagFilterSelectedIds.value[tagId] = !tagFilterSelectedIds.value[tagId];
+
+    const total = allTransactionTagsList.value.length;
+    let selected = 0;
+
+    for (const tag of allTransactionTagsList.value) {
+        if (tagFilterSelectedIds.value[tag.id]) {
+            selected++;
+        }
+    }
+
+    tagFilterSelectAll.value = selected === total && total > 0;
+    applyTagFilterFromSelection();
 }
 
 function toggleSearchbar(): void {
