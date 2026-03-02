@@ -68,6 +68,9 @@
                         <f7-icon class="list-item-checked-icon"
                                  f7="checkmark_alt"
                                  v-if="itemFilterSelectAll"></f7-icon>
+                        <f7-icon class="list-item-checked-icon"
+                                 f7="minus"
+                                 v-else-if="itemFilterIndeterminate"></f7-icon>
                     </template>
                 </f7-list-item>
                 <f7-list-item link="#" no-chevron
@@ -94,6 +97,9 @@
                         <f7-icon class="list-item-checked-icon"
                                  f7="checkmark_alt"
                                  v-if="tagFilterSelectAll"></f7-icon>
+                        <f7-icon class="list-item-checked-icon"
+                                 f7="minus"
+                                 v-else-if="tagFilterIndeterminate"></f7-icon>
                     </template>
                 </f7-list-item>
                 <f7-list-item link="#" no-chevron
@@ -577,6 +583,31 @@ const itemFilterSelectAll = ref<boolean>(false);
 const itemFilterSelectedIds = ref<Record<string, boolean>>({});
 const tagFilterSelectAll = ref<boolean>(false);
 const tagFilterSelectedIds = ref<Record<string, boolean>>({});
+
+// 半选中（用于显示减号图标）
+const itemFilterIndeterminate = computed<boolean>(() => {
+    const total = allTransactionItems.value.length;
+    if (total === 0) return false;
+
+    let selected = 0;
+    for (const item of allTransactionItems.value) {
+        if (itemFilterSelectedIds.value[item.id]) selected++;
+    }
+
+    return selected > 0 && selected < total;
+});
+
+const tagFilterIndeterminate = computed<boolean>(() => {
+    const total = allTransactionTags.value.length;
+    if (total === 0) return false;
+
+    let selected = 0;
+    for (const tag of allTransactionTags.value) {
+        if (tagFilterSelectedIds.value[tag.id]) selected++;
+    }
+
+    return selected > 0 && selected < total;
+});
 
 const allChartTypes = computed<TypeAndDisplayName[]>(() => {
     if (analysisType.value !== StatisticsAnalysisType.CategoricalAnalysis) {
