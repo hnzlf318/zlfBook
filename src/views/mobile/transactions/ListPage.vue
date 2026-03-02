@@ -68,7 +68,7 @@
                 <span :class="{ 'tabbar-item-changed': query.accountIds }">{{ queryAccountName }}</span>
             </f7-link>
             <f7-link popover-open=".more-popover-menu" :class="{ 'disabled': loading }">
-                <f7-icon f7="ellipsis_vertical" :class="{ 'tabbar-item-changed': query.type > 0 || query.amountFilter || query.tagFilter }"></f7-icon>
+                <f7-icon f7="ellipsis_vertical" :class="{ 'tabbar-item-changed': query.type > 0 || query.amountFilter || query.tagFilter || query.itemFilter }"></f7-icon>
             </f7-link>
         </f7-toolbar>
 
@@ -596,6 +596,59 @@
                         </template>
                     </f7-list-item>
                 </template>
+
+                <f7-list-item group-title>
+                    <small>{{ tt('Transaction Items') }}</small>
+                </f7-list-item>
+                <f7-list-item link="#" no-chevron popover-close
+                              :class="{ 'list-item-selected': !query.itemFilter }"
+                              :title="tt('All')"
+                              @click="changeItemFilter('')">
+                    <template #after>
+                        <f7-icon class="list-item-checked-icon" f7="checkmark_alt" v-if="!query.itemFilter"></f7-icon>
+                    </template>
+                </f7-list-item>
+                <f7-list-item link="#" no-chevron popover-close
+                              :class="{ 'list-item-selected': query.itemFilter === TransactionItemFilter.TransactionNoItemFilterValue }"
+                              :title="tt('Without Items')"
+                              @click="changeItemFilter(TransactionItemFilter.TransactionNoItemFilterValue)">
+                    <template #after>
+                        <f7-icon class="list-item-checked-icon" f7="checkmark_alt" v-if="query.itemFilter === TransactionItemFilter.TransactionNoItemFilterValue"></f7-icon>
+                    </template>
+                </f7-list-item>
+                <f7-list-item link="#" no-chevron popover-close
+                              :class="{ 'list-item-selected': query.itemFilter && queryAllFilterItemIdsCount > 1 }"
+                              :title="tt('Multiple Items')" @click="filterMultipleItems()" v-if="allAvailableItemsCount > 0">
+                    <template #after>
+                        <f7-icon class="list-item-checked-icon" f7="checkmark_alt" v-if="query.itemFilter && queryAllFilterItemIdsCount > 1"></f7-icon>
+                    </template>
+                </f7-list-item>
+
+                <template :key="transactionItemGroup.id"
+                          v-for="transactionItemGroup in allTransactionItemGroupsWithDefault">
+                    <f7-list-item group-title class="transaction-item-group" v-if="allTransactionItemsByGroup[transactionItemGroup.id] && allTransactionItemsByGroup[transactionItemGroup.id]?.length && hasVisibleItemsInItemGroup(transactionItemGroup)">
+                        <small>{{ transactionItemGroup.name }}</small>
+                    </f7-list-item>
+
+                    <f7-list-item link="#" no-chevron popover-close
+                                  :title="transactionItem.name"
+                                  :class="{ 'list-item-selected': queryAllFilterItemIdsCount === 1 && isDefined(queryAllFilterItemIds[transactionItem.id]), 'item-in-multiple-selection': queryAllFilterItemIdsCount > 1 && isDefined(queryAllFilterItemIds[transactionItem.id]) }"
+                                  :key="transactionItem.id"
+                                  v-for="transactionItem in (allTransactionItemsByGroup[transactionItemGroup.id] ?? [])"
+                                  v-show="!transactionItem.hidden || isDefined(queryAllFilterItemIds[transactionItem.id])"
+                                  @click="changeItemFilter(TransactionItemFilter.of(transactionItem.id).toTextualItemFilter())"
+                    >
+                        <template #before-title>
+                            <f7-icon class="transaction-tag-name transaction-tag-icon" f7="list_bullet"></f7-icon>
+                        </template>
+                        <template #after>
+                            <f7-icon class="list-item-checked-icon"
+                                     :f7="queryAllFilterItemIds[transactionItem.id] === true ? 'checkmark_alt' : (queryAllFilterItemIds[transactionItem.id] === false ? 'multiply' : undefined)"
+                                     v-if="isDefined(queryAllFilterItemIds[transactionItem.id])">
+                            </f7-icon>
+                        </template>
+                    </f7-list-item>
+                </template>
             </f7-list>
         </f7-popover>
 
@@ -648,7 +701,7 @@ import {
 import { type NumeralSystem, AmountFilterType } from '@/core/numeral.ts';
 import { TransactionType } from '@/core/transaction.ts';
 import type { TransactionCategory } from '@/models/transaction_category.ts';
-import { type Transaction, TransactionTagFilter } from '@/models/transaction.ts';
+import { type Transaction, TransactionTagFilter, TransactionItemFilter } from '@/models/transaction.ts';
 
 import {
     isDefined,
@@ -711,6 +764,9 @@ const {
     allTransactionTagsByGroup,
     allTransactionTags,
     allAvailableTagsCount,
+    allTransactionItemGroupsWithDefault,
+    allTransactionItemsByGroup,
+    allAvailableItemsCount,
     displayPageTypeName,
     query,
     queryDateRangeName,
@@ -721,9 +777,11 @@ const {
     queryAllFilterCategoryIds,
     queryAllFilterAccountIds,
     queryAllFilterTagIds,
+    queryAllFilterItemIds,
     queryAllFilterCategoryIdsCount,
     queryAllFilterAccountIdsCount,
     queryAllFilterTagIdsCount,
+    queryAllFilterItemIdsCount,
     queryAccountName,
     queryCategoryName,
     queryAmount,
@@ -732,6 +790,7 @@ const {
     currentMonthTransactionData,
     hasSubCategoryInQuery,
     hasVisibleTagsInTagGroup,
+    hasVisibleItemsInItemGroup,
     isSameAsDefaultTimezoneOffsetMinutes,
     canAddTransaction,
     getDisplayTime,
@@ -1325,6 +1384,24 @@ function filterMultipleTags(): void {
     props.f7router.navigate('/settings/filter/tag?type=transactionListCurrent');
 }
 
+function changeItemFilter(itemFilter: string): void {
+    if (query.value.itemFilter === itemFilter) {
+        return;
+    }
+
+    const changed = transactionsStore.updateTransactionListFilter({
+        itemFilter: itemFilter
+    });
+
+    if (changed) {
+        reload();
+    }
+}
+
+function filterMultipleItems(): void {
+    props.f7router.navigate('/settings/filter/item?type=transactionListCurrent');
+}
+
 function toggleSearchbar(): void {
     if (!showSearchbar.value) {
         showSearchbar.value = true;
@@ -1639,7 +1716,8 @@ html[dir="rtl"] .list.transaction-info-list li.transaction-info .transaction-foo
     overflow-y: auto;
 }
 
-.more-popover-menu .transaction-tag-group {
+.more-popover-menu .transaction-tag-group,
+.more-popover-menu .transaction-item-group {
     background-color: inherit;
 
     > small {
