@@ -1044,7 +1044,8 @@ function reload(done?: () => void): void {
     Promise.all([
         accountsStore.loadAllAccounts({ force: false }),
         transactionCategoriesStore.loadAllCategories({ force: false }),
-        transactionTagsStore.loadAllTags({ force: false })
+        transactionTagsStore.loadAllTags({ force: false }),
+        transactionItemsStore.loadAllItems({ force: false })
     ]).then(() => {
         if (queryMonthlyData.value) {
             const currentMonthMinDate = parseDateTimeFromUnixTime(query.value.minTime);
