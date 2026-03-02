@@ -17,11 +17,14 @@ import { AccountType } from '@/core/account.ts';
 import { TransactionType } from '@/core/transaction.ts';
 import { DISPLAY_HIDDEN_AMOUNT, INCOMPLETE_AMOUNT_SUFFIX } from '@/consts/numeral.ts';
 import { DEFAULT_TAG_GROUP_ID } from '@/consts/tag.ts';
+import { DEFAULT_ITEM_GROUP_ID } from '@/consts/item.ts';
 
 import type { Account } from '@/models/account.ts';
 import type { TransactionCategory } from '@/models/transaction_category.ts';
 import { TransactionTagGroup } from '@/models/transaction_tag_group.ts';
 import type { TransactionTag } from '@/models/transaction_tag.ts';
+import type { TransactionItem } from '@/models/transaction_item.ts';
+import { TransactionItemGroup } from '@/models/transaction_item_group.ts';
 import { type Transaction, TransactionTagFilter, TransactionItemFilter } from '@/models/transaction.ts';
 
 import {
@@ -91,6 +94,7 @@ export function useTransactionListPageBase() {
     const accountsStore = useAccountsStore();
     const transactionCategoriesStore = useTransactionCategoriesStore();
     const transactionTagsStore = useTransactionTagsStore();
+    const transactionItemsStore = useTransactionItemsStore();
     const transactionsStore = useTransactionsStore();
 
     const pageType = ref<number>(TransactionListPageType.List.type);
@@ -151,6 +155,30 @@ export function useTransactionListPageBase() {
     const allTransactionTagsByGroup = computed<Record<string, TransactionTag[]>>(() => transactionTagsStore.allTransactionTagsByGroupMap);
     const allTransactionTags = computed<Record<string, TransactionTag>>(() => transactionTagsStore.allTransactionTagsMap);
     const allAvailableTagsCount = computed<number>(() => transactionTagsStore.allAvailableTagsCount);
+
+    const allTransactionItemGroupsWithDefault = computed<TransactionItemGroup[]>(() => {
+        const allGroups: TransactionItemGroup[] = [];
+        const itemsInDefaultGroup = transactionItemsStore.allTransactionItemsByGroupMap[DEFAULT_ITEM_GROUP_ID];
+
+        if (itemsInDefaultGroup && itemsInDefaultGroup.length) {
+            const defaultGroup = TransactionItemGroup.createNewItemGroup(tt('Default Group'));
+            defaultGroup.id = DEFAULT_ITEM_GROUP_ID;
+            allGroups.push(defaultGroup);
+        }
+
+        for (const itemGroup of transactionItemsStore.allTransactionItemGroups) {
+            const itemsInGroup = transactionItemsStore.allTransactionItemsByGroupMap[itemGroup.id];
+            if (itemsInGroup && itemsInGroup.length) {
+                allGroups.push(itemGroup);
+            }
+        }
+
+        return allGroups;
+    });
+
+    const allTransactionItemsByGroup = computed<Record<string, TransactionItem[]>>(() => transactionItemsStore.allTransactionItemsByGroupMap);
+    const allTransactionItems = computed<Record<string, TransactionItem>>(() => transactionItemsStore.allTransactionItemsMap);
+    const allAvailableItemsCount = computed<number>(() => transactionItemsStore.allAvailableItemsCount);
 
     const displayPageTypeName = computed<string>(() => {
         const type = TransactionListPageType.valueOf(pageType.value);

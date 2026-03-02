@@ -793,7 +793,7 @@ import { ThemeType } from '@/core/theme.ts';
 import { TransactionType } from '@/core/transaction.ts';
 import { TemplateType }  from '@/core/template.ts';
 import type { TransactionCategory } from '@/models/transaction_category.ts';
-import { type Transaction, TransactionTagFilter } from '@/models/transaction.ts';
+import { type Transaction, TransactionTagFilter, TransactionItemFilter } from '@/models/transaction.ts';
 import type { TransactionTemplate } from '@/models/transaction_template.ts';
 
 import {
@@ -910,7 +910,6 @@ const {
     allAvailableTagsCount,
     allTransactionItemGroupsWithDefault,
     allTransactionItemsByGroup,
-    allTransactionItems,
     allAvailableItemsCount,
     query,
     queryMinTime,
@@ -998,6 +997,7 @@ const showCustomMonthDialog = ref<boolean>(false);
 const showFilterAccountDialog = ref<boolean>(false);
 const showFilterCategoryDialog = ref<boolean>(false);
 const showFilterTagDialog = ref<boolean>(false);
+const showFilterItemDialog = ref<boolean>(false);
 /** When true, onBeforeRouteUpdate will skip init() to avoid re-entry loop from our own router.push */
 const skipNextRouteUpdate = ref<boolean>(false);
 /** Re-entry guard to prevent init() recursion causing stack overflow */
