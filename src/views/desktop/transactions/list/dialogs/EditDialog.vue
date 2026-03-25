@@ -308,7 +308,7 @@
                                 <v-avatar rounded="lg" variant="tonal" size="160"
                                           class="cursor-pointer transaction-picture"
                                           color="rgba(0,0,0,0)" @click="viewOrRemovePicture(pictureInfo)">
-                                    <v-img :src="getTransactionPictureUrl(pictureInfo)">
+                                    <v-img :src="loading ? undefined : getTransactionPictureUrl(pictureInfo)">
                                         <template #placeholder>
                                             <div class="d-flex align-center justify-center fill-height bg-light-primary">
                                                 <v-progress-circular color="grey-500" indeterminate size="48"></v-progress-circular>
@@ -680,7 +680,7 @@ function open(options: TransactionEditOptions): Promise<TransactionEditResponse 
         clientSessionId.value = generateRandomUUID();
     }
 
-    Promise.all(promises).then(function (responses) {
+    Promise.all(promises).then(async function (responses) {
         const entityResponse = editId.value ? responses[responses.length - 1] : undefined;
         if (editId.value && !entityResponse) {
             if (rejectFunc) {
@@ -710,6 +710,9 @@ function open(options: TransactionEditOptions): Promise<TransactionEditResponse 
         } else {
             setTransaction(null, options, true);
         }
+
+        // Prefetch and cache transaction pictures locally so next time opening this dialog won't re-download them.
+        await transactionsStore.prefetchTransactionPictures(transaction.value.pictures);
 
         loading.value = false;
     }).catch(error => {
@@ -956,6 +959,10 @@ function uploadPicture(event: Event): void {
 
     transactionsStore.uploadTransactionPicture({ pictureFile }).then(response => {
         transaction.value.addPicture(response);
+        // Cache the newly uploaded picture locally for faster next display.
+        transactionsStore.prefetchTransactionPictures(transaction.value.pictures).catch(error => {
+            logger.error('failed to prefetch newly uploaded transaction picture', error);
+        });
         uploadingPicture.value = false;
         submitting.value = false;
     }).catch(error => {
@@ -981,6 +988,9 @@ function viewOrRemovePicture(pictureInfo: TransactionPictureInfoBasicResponse): 
         transactionsStore.removeUnusedTransactionPicture({ pictureInfo }).then(response => {
             if (response) {
                 transaction.value.removePicture(pictureInfo);
+                transactionsStore.removeTransactionPictureLocalCache(pictureInfo.pictureId).catch(error => {
+                    logger.error('failed to remove transaction picture from local cache', error);
+                });
             }
 
             removingPictureId.value = '';
@@ -988,6 +998,9 @@ function viewOrRemovePicture(pictureInfo: TransactionPictureInfoBasicResponse): 
         }).catch(error => {
             if (error.error && error.error.errorCode === KnownErrorCode.TransactionPictureNotFound) {
                 transaction.value.removePicture(pictureInfo);
+                transactionsStore.removeTransactionPictureLocalCache(pictureInfo.pictureId).catch(error => {
+                    logger.error('failed to remove transaction picture from local cache', error);
+                });
             } else if (!error.processed) {
                 snackbar.value?.showError(error);
             }

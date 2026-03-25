@@ -62,6 +62,11 @@ import { getCurrencyFraction } from '@/lib/currency.ts';
 import { getFirstVisibleCategoryId } from '@/lib/category.ts';
 import services, { type ApiResponsePromise } from '@/lib/services.ts';
 import logger from '@/lib/logger.ts';
+import {
+    getTransactionPictureBlobFromLocalCache,
+    setTransactionPictureBlobToLocalCache,
+    deleteTransactionPictureBlobFromLocalCache
+} from '@/lib/transaction_picture_cache.ts';
 
 export interface TransactionListPartialFilter {
     dateType?: number;
@@ -117,6 +122,10 @@ export const useTransactionsStore = defineStore('transactions', () => {
     const exchangeRatesStore = useExchangeRatesStore();
 
     const transactionDraft = ref<TransactionDraft | null>(getUserTransactionDraft());
+    const transactionPictureLocalUrls = ref<Record<string, string>>({});
+    const transactionPictureLocalUrlOrder = ref<string[]>([]);
+    const transactionPictureCacheLoading = ref<Record<string, boolean>>({});
+    const MAX_TRANSACTION_PICTURE_LOCAL_URLS_IN_MEMORY = 200;
 
     const transactionsFilter = ref<TransactionListFilter>({
         dateType: DateRange.All.type,
@@ -1471,11 +1480,121 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
 
     function getTransactionPictureUrl(pictureInfo?: TransactionPictureInfoBasicResponse | null, disableBrowserCache?: boolean | string): string | undefined {
-        if (!pictureInfo || !pictureInfo.originalUrl) {
+        if (!pictureInfo) {
+            return undefined;
+        }
+
+        const localUrl = transactionPictureLocalUrls.value[pictureInfo.pictureId];
+
+        if (localUrl) {
+            return localUrl;
+        }
+
+        if (!pictureInfo.originalUrl) {
             return undefined;
         }
 
         return services.getTransactionPictureUrlWithToken(pictureInfo.originalUrl, disableBrowserCache);
+    }
+
+    function parsePictureExtensionFromOriginalUrl(originalUrl: string): string | undefined {
+        if (!originalUrl) {
+            return undefined;
+        }
+
+        // originalUrl example: https://example/pictures/<pictureId>.<ext>
+        const match = originalUrl.match(/\.([a-zA-Z0-9]+)(?:\?.*)?$/);
+        return match?.[1];
+    }
+
+    async function prefetchTransactionPictures(pictures?: TransactionPictureInfoBasicResponse[] | null): Promise<void> {
+        if (!pictures || !pictures.length) {
+            return;
+        }
+
+        const currentPictureIdSet = new Set(pictures.map(p => p?.pictureId).filter(Boolean) as string[]);
+
+        for (const picture of pictures) {
+            if (!picture || !picture.pictureId || !picture.originalUrl) {
+                continue;
+            }
+
+            if (transactionPictureLocalUrls.value[picture.pictureId]) {
+                continue;
+            }
+
+            if (transactionPictureCacheLoading.value[picture.pictureId]) {
+                continue;
+            }
+
+            transactionPictureCacheLoading.value[picture.pictureId] = true;
+
+            try {
+                const cachedBlob = await getTransactionPictureBlobFromLocalCache(picture.pictureId);
+
+                let blobToUse = cachedBlob;
+
+                if (!blobToUse) {
+                    const url = services.getTransactionPictureUrlWithToken(picture.originalUrl, false);
+
+                    const resp = await fetch(url);
+
+                    if (!resp.ok) {
+                        throw new Error('Failed to download transaction picture');
+                    }
+
+                    blobToUse = await resp.blob();
+
+                    const extension = parsePictureExtensionFromOriginalUrl(picture.originalUrl);
+                    await setTransactionPictureBlobToLocalCache(picture.pictureId, blobToUse, extension);
+                }
+
+                const objectUrl = URL.createObjectURL(blobToUse);
+                transactionPictureLocalUrls.value[picture.pictureId] = objectUrl;
+                transactionPictureLocalUrlOrder.value.push(picture.pictureId);
+
+                // Keep memory usage bounded by revoking old object URLs.
+                while (transactionPictureLocalUrlOrder.value.length > MAX_TRANSACTION_PICTURE_LOCAL_URLS_IN_MEMORY) {
+                    const oldestPictureId = transactionPictureLocalUrlOrder.value[0];
+
+                    // Don't revoke urls that might still be displayed in the current page.
+                    if (!oldestPictureId || currentPictureIdSet.has(oldestPictureId)) {
+                        break;
+                    }
+
+                    const removedPictureId = transactionPictureLocalUrlOrder.value.shift();
+
+                    if (removedPictureId && transactionPictureLocalUrls.value[removedPictureId]) {
+                        URL.revokeObjectURL(transactionPictureLocalUrls.value[removedPictureId]);
+                        delete transactionPictureLocalUrls.value[removedPictureId];
+                    }
+                }
+            } catch (e) {
+                // ignore cache errors to avoid blocking UI
+                logger.error('Failed to prefetch transaction picture', e);
+            } finally {
+                transactionPictureCacheLoading.value[picture.pictureId] = false;
+            }
+        }
+    }
+
+    async function removeTransactionPictureLocalCache(pictureId: string): Promise<void> {
+        if (!pictureId) {
+            return;
+        }
+
+        const url = transactionPictureLocalUrls.value[pictureId];
+
+        if (url) {
+            URL.revokeObjectURL(url);
+            delete transactionPictureLocalUrls.value[pictureId];
+        }
+
+        if (transactionPictureLocalUrlOrder.value.length) {
+            transactionPictureLocalUrlOrder.value = transactionPictureLocalUrlOrder.value.filter(id => id !== pictureId);
+        }
+
+        await deleteTransactionPictureBlobFromLocalCache(pictureId);
     }
 
     function collapseMonthInTransactionList({ monthList, collapse }: { monthList: TransactionMonthList, collapse: boolean }): void {
@@ -1537,6 +1656,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
         uploadTransactionPicture,
         removeUnusedTransactionPicture,
         getTransactionPictureUrl,
+        prefetchTransactionPictures,
+        removeTransactionPictureLocalCache,
         collapseMonthInTransactionList,
         setLastOCRAddedRowIndex
     };

@@ -643,6 +643,11 @@ const transactionDisplayTime = computed<string>(() => {
 const transactionPictures = computed<Record<string, string | undefined>[]>(() => {
     const thumbs: Record<string, string | undefined>[] = [];
 
+    if (loading.value) {
+        // Keep `f7-photo-browser` from triggering any picture requests before local cache prefetch finishes.
+        return thumbs;
+    }
+
     if (!transaction.value.pictures || !transaction.value.pictures.length) {
         return thumbs;
     }
@@ -658,6 +663,11 @@ const transactionPictures = computed<Record<string, string | undefined>[]>(() =>
 
 const transactionThumbs = computed<(string | undefined)[]>(() => {
     const thumbs: (string | undefined)[] = [];
+
+    if (loading.value) {
+        // Keep `f7-photo-browser` from triggering any picture requests before local cache prefetch finishes.
+        return thumbs;
+    }
 
     if (!transaction.value.pictures || !transaction.value.pictures.length) {
         return thumbs;
@@ -847,7 +857,7 @@ function init(): void {
         clientSessionId.value = generateRandomUUID();
     }
 
-    Promise.all(promises).then(function (responses) {
+    Promise.all(promises).then(async function (responses) {
         if (query['id'] && !responses[5]) {
             if (pageTypeAndMode.type === TransactionEditPageType.Transaction) {
                 showToast('Unable to retrieve transaction');
@@ -921,6 +931,9 @@ function init(): void {
 
             (transaction.value as TransactionTemplate).fillFrom(template);
         }
+
+        // Prefetch and cache transaction pictures locally so next time opening this page won't re-download them.
+        await transactionsStore.prefetchTransactionPictures(transaction.value.pictures);
 
         loading.value = false;
     }).catch(error => {
@@ -1124,6 +1137,10 @@ function uploadPicture(event: Event): void {
 
     transactionsStore.uploadTransactionPicture({ pictureFile }).then(response => {
         transaction.value.addPicture(response);
+        // Cache the newly uploaded picture locally for faster next display.
+        transactionsStore.prefetchTransactionPictures(transaction.value.pictures).catch(error => {
+            logger.error('failed to prefetch newly uploaded transaction picture', error);
+        });
         uploadingPicture.value = false;
         submitting.value = false;
     }).catch(error => {
@@ -1149,6 +1166,9 @@ function viewOrRemovePicture(pictureInfo: TransactionPictureInfoBasicResponse): 
         transactionsStore.removeUnusedTransactionPicture({ pictureInfo }).then(response => {
             if (response) {
                 transaction.value.removePicture(pictureInfo);
+                transactionsStore.removeTransactionPictureLocalCache(pictureInfo.pictureId).catch(error => {
+                    logger.error('failed to remove transaction picture from local cache', error);
+                });
             }
 
             removingPictureId.value = '';
