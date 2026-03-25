@@ -185,6 +185,9 @@ func startWebServer(c *core.CliContext) error {
 	}
 
 	if config.EnableTransactionPictures {
+		// Enable CORS only for transaction picture fetches so browser `fetch()` can read bytes and cache them locally.
+		router.Use(bindMiddleware(middlewares.TransactionPicturesCors()))
+
 		pictureRoute := router.Group("/pictures")
 		pictureRoute.Use(bindMiddleware(middlewares.JWTAuthorizationByQueryString(config)))
 		{
