@@ -857,7 +857,7 @@ function init(): void {
         clientSessionId.value = generateRandomUUID();
     }
 
-    Promise.all(promises).then(async function (responses) {
+    Promise.all(promises).then(function (responses) {
         if (query['id'] && !responses[5]) {
             if (pageTypeAndMode.type === TransactionEditPageType.Transaction) {
                 showToast('Unable to retrieve transaction');
@@ -932,10 +932,13 @@ function init(): void {
             (transaction.value as TransactionTemplate).fillFrom(template);
         }
 
-        // Prefetch and cache transaction pictures locally so next time opening this page won't re-download them.
-        await transactionsStore.prefetchTransactionPictures(transaction.value.pictures);
-
+        // First, end loading to render all textual content immediately.
         loading.value = false;
+
+        // Then, prefetch pictures in background (do not block the UI).
+        transactionsStore.prefetchTransactionPictures(transaction.value.pictures).catch(error => {
+            logger.error('failed to prefetch transaction pictures (background)', error);
+        });
     }).catch(error => {
         logger.error('failed to load essential data for editing transaction', error);
 

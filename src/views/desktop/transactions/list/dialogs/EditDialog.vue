@@ -680,7 +680,7 @@ function open(options: TransactionEditOptions): Promise<TransactionEditResponse 
         clientSessionId.value = generateRandomUUID();
     }
 
-    Promise.all(promises).then(async function (responses) {
+    Promise.all(promises).then(function (responses) {
         const entityResponse = editId.value ? responses[responses.length - 1] : undefined;
         if (editId.value && !entityResponse) {
             if (rejectFunc) {
@@ -714,7 +714,13 @@ function open(options: TransactionEditOptions): Promise<TransactionEditResponse 
         // Prefetch and cache transaction pictures locally so next time opening this dialog won't re-download them.
         await transactionsStore.prefetchTransactionPictures(transaction.value.pictures);
 
+        // First, end loading to render all textual content immediately.
         loading.value = false;
+
+        // Then, prefetch pictures in background (do not block the UI).
+        transactionsStore.prefetchTransactionPictures(transaction.value.pictures).catch(error => {
+            logger.error('failed to prefetch transaction pictures (background)', error);
+        });
     }).catch(error => {
         logger.error('failed to load essential data for editing transaction', error);
 
