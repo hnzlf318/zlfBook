@@ -711,9 +711,6 @@ function open(options: TransactionEditOptions): Promise<TransactionEditResponse 
             setTransaction(null, options, true);
         }
 
-        // Prefetch and cache transaction pictures locally so next time opening this dialog won't re-download them.
-        await transactionsStore.prefetchTransactionPictures(transaction.value.pictures);
-
         // First, end loading to render all textual content immediately.
         loading.value = false;
 
