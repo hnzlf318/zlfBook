@@ -308,7 +308,7 @@
                                 <v-avatar rounded="lg" variant="tonal" size="160"
                                           class="cursor-pointer transaction-picture"
                                           color="rgba(0,0,0,0)" @click="viewOrRemovePicture(pictureInfo)">
-                                    <v-img :src="loading ? undefined : getTransactionPictureUrl(pictureInfo)">
+                                    <v-img :src="getTransactionPictureUrl(pictureInfo)">
                                         <template #placeholder>
                                             <div class="d-flex align-center justify-center fill-height bg-light-primary">
                                                 <v-progress-circular color="grey-500" indeterminate size="48"></v-progress-circular>
